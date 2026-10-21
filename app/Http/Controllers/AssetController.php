@@ -80,7 +80,7 @@ class AssetController extends Controller
 
         $path = null;
         if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
-            $path = $request->file('attachment')->store('vault_attachments', 'public');
+            $path = $request->file('attachment')->store('vault_attachments', 'supabase');
         }
 
         $asset = $user->assets()->create([
@@ -131,7 +131,7 @@ class AssetController extends Controller
         $title = $asset->title;
 
         if ($asset->attachment_path) {
-            Storage::disk('public')->delete($asset->attachment_path);
+            Storage::disk('supabase')->delete($asset->attachment_path);
         }
 
         $asset->delete();
@@ -167,14 +167,14 @@ public function viewAttachment(Request $request, Asset $asset)
             return response()->json(['message' => 'Kata sandi akun yang Anda masukkan salah!'], 422);
         }
 
-        if (!$asset->attachment_path || !Storage::disk('public')->exists($asset->attachment_path)) {
+        if (!$asset->attachment_path || !Storage::disk('supabase')->exists($asset->attachment_path)) {
             return response()->json(['message' => 'Berkas lampiran tidak ditemukan di penyimpanan server.'], 404);
         }
 
         ActivityLog::record('VIEW_ATTACHMENT', "Membuka lampiran berkas terenkripsi dari aset: {$asset->title}");
 
         return response()->json([
-            'download_url' => Storage::url($asset->attachment_path),
+            'download_url' => Storage::disk('supabase')->url($asset->attachment_path),
         ]);
     }
 
