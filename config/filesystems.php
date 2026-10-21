@@ -28,24 +28,25 @@ return [
     |
     */
 
-    'disks' => [
+'disks' => [
 
-        'local' => [
-            'driver' => 'local',
-            'root' => storage_path('app/private'),
-            'serve' => true,
-            'throw' => false,
-            'report' => false,
-        ],
+    'local' => [
+        'driver' => 'local',
+        'root' => env('APP_ENV') === 'production' 
+            ? '/tmp/storage/app' 
+            : storage_path('app'),
+        'throw' => false,
+    ],
 
-        'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
-            'visibility' => 'public',
-            'throw' => false,
-            'report' => false,
-        ],
+    'public' => [
+        'driver' => 'local',
+        'root' => env('APP_ENV') === 'production' 
+            ? '/tmp/storage/app/public' 
+            : storage_path('app/public'),
+        'url' => env('APP_URL').'/storage',
+        'visibility' => 'public',
+        'throw' => false,
+    ],
 
         's3' => [
             'driver' => 's3',
