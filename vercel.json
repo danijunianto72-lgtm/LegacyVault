@@ -5,10 +5,7 @@
     "functions": {
         "api/index.php": {
             "runtime": "vercel-php@0.7.2",
-            "maxDuration": 60,
-            "environment": {
-                "PHP_VERSION": "8.2"
-            }
+            "maxDuration": 60
         }
     },
     "routes": [
@@ -22,6 +19,7 @@
         }
     ],
     "env": {
+        "PHP_VERSION": "8.2",
         "APP_ENV": "production",
         "APP_DEBUG": "false",
         "APP_CONFIG_CACHE": "/tmp/config.php",
