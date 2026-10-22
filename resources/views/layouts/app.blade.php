@@ -4,12 +4,48 @@
           darkMode: localStorage.getItem('theme') !== 'light',
           mobileMenuOpen: false 
       }" 
-      x-init="$watch('darkMode', val => localStorage.setItem('theme', val ? 'dark' : 'light'))" 
+      x-init="$watch('darkMode', val => {
+          localStorage.setItem('theme', val ? 'dark' : 'light');
+          document.documentElement.classList.toggle('dark', val);
+      })" 
       :class="{ 'dark': darkMode }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'LegacyVault - Digital Inheritance SaaS' }}</title>
+
+    <!-- 1. SCRIPT ANTI-FLASH: Berjalan instan sebelum halaman dirender untuk mengunci class 'dark' -->
+    <script>
+        if (localStorage.getItem('theme') !== 'light') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <!-- 2. FALLBACK CSS INSTAN: Memberi warna background sebelum Tailwind CDN selesai di-generate -->
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+        [x-cloak] { display: none !important; }
+        
+        /* Warna dasar instan (slate-50 untuk terang, slate-950 untuk gelap) */
+        html {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        html.dark {
+            background-color: #020617;
+            color: #f1f5f9;
+            color-scheme: dark;
+        }
+        body {
+            background-color: inherit;
+            color: inherit;
+        }
+    </style>
+
     <!-- Tailwind CSS CDN dengan konfigurasi Dark Mode Class -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -21,9 +57,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Alpine.js CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        [x-cloak] { display: none !important; }
-    </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-200">
 @unless(request()->routeIs('login') || request()->routeIs('register') || request()->routeIs('register.otp') || request()->routeIs('onboarding'))    <!-- Top Navigation Bar Responsif -->
