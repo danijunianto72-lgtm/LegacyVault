@@ -80,8 +80,7 @@ class AssetController extends Controller
 
         $path = null;
         if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
-            $path = $request->file('attachment')->store('vault_attachments', 'supabase');
-        }
+$path = $request->file('attachment')->store('', 'supabase');        }
 
         $asset = $user->assets()->create([
             'title' => $validated['title'],
