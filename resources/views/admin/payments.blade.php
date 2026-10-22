@@ -43,10 +43,10 @@
                                 Nominal Transfer: <strong class="text-emerald-600 dark:text-emerald-400">Rp {{ number_format($payment->amount, 0, ',', '.') }}</strong>
                             </div>
                             <div class="pt-2">
-                                <a href="{{ Storage::url($payment->proof_image_path) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 font-medium">
-                                    <i class="fa-solid fa-image"></i>
-                                    <span>Lihat Foto Bukti Transfer</span>
-                                </a>
+                            <a href="{{ Storage::disk('supabase')->url($payment->proof_image_path) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 font-medium">
+                                <i class="fa-solid fa-image"></i>
+                                <span>Lihat Foto Bukti Transfer</span>
+                            </a>
                             </div>
                         </div>
 
