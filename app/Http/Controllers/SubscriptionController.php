@@ -20,7 +20,7 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    public function checkout(Request $request): RedirectResponse
+   public function checkout(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'plan_id' => 'required|exists:plans,id',
@@ -36,7 +36,8 @@ class SubscriptionController extends Controller
             return back()->with('error', 'Anda masih memiliki transaksi yang sedang menunggu verifikasi Admin.');
         }
 
-        $path = $request->file('proof_image')->store('payment_proofs', 'public');
+        // SIMPAN KE SUPABASE (bukan 'public')
+        $path = $request->file('proof_image')->store('payment_proofs', 'supabase_proofs');
 
         $request->user()->payments()->create([
             'plan_id' => $plan->id,

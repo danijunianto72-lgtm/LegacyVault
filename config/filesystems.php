@@ -71,6 +71,17 @@ return [
         'use_path_style_endpoint' => true,
         'throw' => false,
     ],
+    'supabase_proofs' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_ACCESS_KEY_ID'),
+            'secret' => env('SUPABASE_SECRET_ACCESS_KEY'),
+            'region' => env('SUPABASE_DEFAULT_REGION', 'ap-northeast-1'),
+            'bucket' => 'payment_proofs',
+            'url' => 'https://krfhgwclwpqbyujxlcji.supabase.co/storage/v1/object/public/payment_proofs',
+            'endpoint' => env('SUPABASE_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+        ],
 
     ],
 

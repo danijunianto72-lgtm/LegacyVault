@@ -186,7 +186,7 @@
                             <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">{{ $pay->plan->name }}</td>
                             <td class="py-3 px-4 text-slate-700 dark:text-slate-300">Rp {{ number_format($pay->amount, 0, ',', '.') }}</td>
                             <td class="py-3 px-4">
-                             <a href="{{ Storage::disk('supabase')->url($pay->proof_image_path) }}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-medium">
+                           <a href="{{ Storage::disk('supabase_proofs')->url($pay->proof_image_path) }}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-medium">
                                 <i class="fa-solid fa-file-image"></i>
                                 <span>Lihat Struk</span>
                             </a>
