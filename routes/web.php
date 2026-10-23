@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AdminPaymentController;
+use App\Http\Controllers\AdminAssetMonitoringController;
+use App\Http\Controllers\AdminLogController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\SubscriptionController;
