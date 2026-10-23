@@ -273,33 +273,101 @@
             </header>
 
             <!-- Flash Notifications -->
-            <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-4">
+           <!-- ========================================================= -->
+<!-- MODAL POP-UP FLASH NOTIFIKASI (SUCCESS, ERROR, & VALIDATION) -->
+<!-- ========================================================= -->
+@if(session('success') || session('error') || $errors->any())
+<div x-data="{ 
+        showAlertModal: true,
+        init() {
+            // Otomatis tutup setelah 4 detik jika sukses biasa
+            @if(session('success'))
+                setTimeout(() => { this.showAlertModal = false; }, 4000);
+            @endif
+        }
+     }">
+    <template x-teleport="body">
+        <div x-show="showAlertModal" 
+             x-cloak 
+             class="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+            
+            <div @click.away="showAlertModal = false" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="bg-white dark:bg-slate-900 border @if(session('success')) border-emerald-500/40 @else border-rose-500/40 @endif rounded-3xl max-w-sm sm:max-w-md w-full p-6 shadow-2xl space-y-4 text-center">
+                
+                <!-- Ikon Status -->
                 @if(session('success'))
-                    <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-sm flex items-center gap-2.5">
-                        <i class="fa-solid fa-circle-check text-emerald-500 text-base"></i>
-                        <span>{{ session('success') }}</span>
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 text-3xl shadow-inner animate-bounce">
+                        <i class="fa-solid fa-circle-check"></i>
                     </div>
-                @endif
-                @if(session('error'))
-                    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-sm flex items-center gap-2.5">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-base"></i>
-                        <span>{{ session('error') }}</span>
+                    <div class="space-y-1.5">
+                        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Berhasil!</h3>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {{ session('success') }}
+                        </p>
                     </div>
-                @endif
-                @if($errors->any())
-                    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-sm">
-                        <div class="font-semibold mb-1 flex items-center gap-2">
-                            <i class="fa-solid fa-circle-xmark"></i>
-                            <span>Terdapat kesalahan input:</span>
+                    <div class="pt-3 border-t border-slate-200 dark:border-slate-800">
+                        <button type="button" 
+                                @click="showAlertModal = false" 
+                                class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/20">
+                            Oke, Mengerti
+                        </button>
+                    </div>
+
+                @elseif(session('error'))
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-500 text-3xl shadow-inner">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    </div>
+                    <div class="space-y-1.5">
+                        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Terjadi Kendala</h3>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                            {{ session('error') }}
+                        </p>
+                    </div>
+                    <div class="pt-3 border-t border-slate-200 dark:border-slate-800">
+                        <button type="button" 
+                                @click="showAlertModal = false" 
+                                class="w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs transition shadow-lg shadow-rose-500/20">
+                            Tutup
+                        </button>
+                    </div>
+
+                @elseif($errors->any())
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-500 text-3xl shadow-inner">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="space-y-2 text-left">
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white text-center">Terdapat Kesalahan Input</h3>
+                        <div class="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 max-h-44 overflow-y-auto pr-1">
+                            <ul class="space-y-1.5 text-xs text-rose-600 dark:text-rose-400">
+                                @foreach($errors->all() as $err)
+                                    <li class="flex items-start gap-2">
+                                        <i class="fa-solid fa-circle text-[6px] mt-1.5 shrink-0"></i>
+                                        <span>{{ $err }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
                         </div>
-                        <ul class="list-disc list-inside space-y-1">
-                            @foreach($errors->all() as $err)
-                                <li>{{ $err }}</li>
-                            @endforeach
-                        </ul>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                        <button type="button" 
+                                @click="showAlertModal = false" 
+                                class="w-full py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs transition">
+                            Perbaiki Input
+                        </button>
                     </div>
                 @endif
+
             </div>
+        </div>
+    </template>
+</div>
+@endif
 
             <!-- Main Content -->
             <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">

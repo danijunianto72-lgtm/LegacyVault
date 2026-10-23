@@ -392,7 +392,7 @@
                 </span>
                 @if($expiringCount > 0)
                     <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-extrabold animate-pulse">
-                        Perlu Cek!
+                        Cek!
                     </span>
                 @endif
             </div>
