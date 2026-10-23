@@ -22,6 +22,10 @@ protected $fillable = [
     'next_check_in_deadline',
     'check_in_interval_days',
     'switch_status',
+    'gender',
+    'birth_date',
+    'avatar_url',
+    
 ];
 
     protected function casts(): array
@@ -31,9 +35,14 @@ protected $fillable = [
             'password' => 'hashed',
             'last_check_in_at' => 'datetime',
             'next_check_in_deadline' => 'datetime',
+            'birth_date' => 'date',
         ];
     }
 
+    public function getAgeAttribute(): ?int
+{
+    return $this->birth_date ? $this->birth_date->age : null;
+}
     // Helper untuk mereset timer konfirmasi sehat
     public function confirmCheckIn(): void
     {

@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -21,7 +22,7 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Tahap 1: Validasi input form, generate OTP, simpan di session, & kirim ke WA.
+     * Tahap 1: Validasi input form, upload avatar ke Supabase, simpan session, & kirim WA OTP.
      */
     public function store(Request $request): RedirectResponse
     {
@@ -30,6 +31,9 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'phone' => ['required', 'string', 'max:25'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'gender' => ['required', 'in:male,female'],
+            'birth_date' => ['required', 'date', 'before:today'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -37,16 +41,33 @@ class RegisteredUserController extends Controller
             'phone.required' => 'Nomor WhatsApp wajib diisi.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'gender.required' => 'Pilih jenis kelamin Anda.',
+            'birth_date.required' => 'Tanggal lahir wajib diisi.',
+            'birth_date.before' => 'Tanggal lahir tidak valid.',
+            'avatar.image' => 'File harus berupa gambar.',
+            'avatar.max' => 'Ukuran foto maksimal 2MB.',
         ]);
+
+        // Upload avatar ke Supabase Storage jika ada
+        $avatarUrl = null;
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $fileName = 'avatars/' . uniqid() . '.' . $file->getClientOriginalExtension();
+            Storage::disk('supabase')->put($fileName, file_get_contents($file), 'public');
+            $avatarUrl = Storage::disk('supabase')->url($fileName);
+        }
 
         $otpCode = (string) random_int(100000, 999999);
 
-        // Simpan data pendaftaran sementara di session sebelum OTP diverifikasi
+        // Simpan data lengkap ke session sementara
         session([
             'pending_registration' => [
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
+                'gender' => $request->gender,
+                'birth_date' => $request->birth_date,
+                'avatar_url' => $avatarUrl,
                 'password' => Hash::make($request->password),
                 'otp_code' => $otpCode,
                 'expires_at' => now()->addMinutes(5),
@@ -99,11 +120,14 @@ class RegisteredUserController extends Controller
             return back()->withErrors(['otp' => 'Kode OTP yang Anda masukkan salah!']);
         }
 
-        // OTP Cocok -> Buat User Resmi di Database
+        // OTP Cocok -> Buat User Resmi di Database dari data pending session
         $user = User::create([
             'name' => $pending['name'],
             'email' => $pending['email'],
             'phone' => $pending['phone'],
+            'gender' => $pending['gender'],
+            'birth_date' => $pending['birth_date'],
+            'avatar_url' => $pending['avatar_url'],
             'password' => $pending['password'],
             'role' => 'user',
             'check_in_interval_days' => 180,
@@ -145,13 +169,12 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Fungsi Helper Kirim Pesan via WhatsApp Gateway (Fonnte).
+     * Helper kirim pesan via WhatsApp Gateway (Fonnte).
      */
     private function sendWhatsAppOtp(string $phone, string $name, string $otp): void
     {
         $token = env('FONNTE_TOKEN');
         if (!$token) {
-            // Jika belum ada token Fonnte di .env, lewati panggilan HTTP (Gunakan mode simulasi UI)
             return;
         }
 
@@ -164,7 +187,7 @@ class RegisteredUserController extends Controller
                 'countryCode' => '62',
             ]);
         } catch (\Exception $e) {
-            // Abaikan jika gagal koneksi internet lokal
+            // Abaikan jika koneksi internet gateway gagal
         }
     }
 }
