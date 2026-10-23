@@ -820,171 +820,228 @@
             </table>
         </div>
     </div>
-
-    <!-- ========================================================== -->
-    <!-- MODAL 1: KONFIRMASI PASSWORD SAAT MEMBUKA DEKRIPSI (MATA)  -->
-    <!-- ========================================================== -->
-    <div x-show="decryptModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-        <div @click.away="decryptModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-user-lock text-emerald-500"></i>
-                    <span>Verifikasi Keamanan Brankas</span>
-                </h3>
-                <button @click="decryptModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
-                Masukkan kata sandi akun Anda untuk mendekripsi dan melihat isi rahasia dari aset <strong class="text-slate-900 dark:text-white" x-text="targetAssetTitle"></strong>.
-            </p>
-
-            <form @submit.prevent="submitDecrypt()" class="mt-4 space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                        <i class="fa-solid fa-key mr-1 text-emerald-500"></i> Kata Sandi Akun
-                    </label>
-                    <div class="relative">
-                        <input :type="showConfirmPassword ? 'text' : 'password'" 
-                               x-model="confirmPassword"
-                               placeholder="Masukkan password akun..."
-                               required
-                               class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 pl-3.5 pr-10 py-2.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        <button type="button" @click="showConfirmPassword = !showConfirmPassword"
-                                class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-emerald-500">
-                            <i class="fa-solid" :class="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-                        </button>
-                    </div>
-                    <template x-if="decryptError">
-                        <p class="text-xs text-rose-500 mt-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle-exclamation"></i>
-                            <span x-text="decryptError"></span>
-                        </p>
-                    </template>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" @click="decryptModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">
-                        Batal
-                    </button>
-                    <button type="submit" :disabled="isDecrypting" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-unlock-keyhole"></i>
-                        <span x-text="isDecrypting ? 'Memverifikasi...' : 'Buka Dekripsi'"></span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ========================================================== -->
-    <!-- MODAL 2: TAMBAH ASET BARU (+ Tambah Aset Baru)             -->
-    <!-- ========================================================== -->
-    <div x-show="showAddAssetModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm overflow-y-auto">
-        <div @click.away="showAddAssetModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl my-8">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-file-shield text-emerald-500"></i>
-                    <span>Simpan Aset Baru ke Brankas</span>
-                </h2>
-                <button @click="showAddAssetModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <form action="{{ route('assets.store') }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        <i class="fa-solid fa-heading mr-1 text-emerald-500"></i> Nama / Judul Aset
-                    </label>
-                    <input type="text" name="title" required placeholder="Contoh: Deposito & E-Banking BCA Utama"
-                           class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        <i class="fa-solid fa-tags mr-1 text-emerald-500"></i> Kategori Aset
-                    </label>
-                    <select name="category" class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        <option value="Finansial">Rekening Bank / Finansial</option>
-                        <option value="Kredensial Akun">Crypto / Seed Phrase</option>
-                        <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
-                        <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        <i class="fa-solid fa-key mr-1 text-emerald-500"></i> Isi Kredensial / Instruksi Rahasia (Akan Dienkripsi)
-                    </label>
-                    <textarea name="secret_content" rows="4" required placeholder="Tuliskan nomor rekening, PIN, seed phrase, atau instruksi pencairan..."
-                              class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-slate-900 dark:text-white font-mono text-xs focus:border-emerald-500 focus:outline-none"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        <i class="fa-solid fa-paperclip mr-1 text-emerald-500"></i> Lampiran Dokumen (Opsional, PDF/JPG maks 5MB)
-                    </label>
-                    <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png"
-                           class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-200 dark:file:bg-slate-800 file:text-slate-700 dark:file:text-slate-300">
-                </div>
-                <div x-data="{ isLifetime: true }" class="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
-    <div class="flex items-center justify-between">
-        <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Masa Berlaku Dokumen / Aset</label>
+<!-- ========================================================= -->
+<!-- 1. MODAL VERIFIKASI DEKRIPSI ASET                         -->
+<!-- ========================================================= -->
+<div x-show="decryptModalOpen" 
+     x-cloak 
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+    <div @click.away="decryptModalOpen = false; decryptError = ''; confirmPassword = '';" 
+         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
         
-        <!-- Checkbox Opsi Selamanya -->
-        <label class="inline-flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" name="is_lifetime" value="1" x-model="isLifetime" class="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500">
-            <span class="text-xs font-semibold text-emerald-500">Berlaku Selamanya (&infin;)</span>
-        </label>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <!-- Tanggal Awal -->
-        <div>
-            <label class="block text-[11px] text-slate-400 mb-1">Tanggal Mulai / Terbit (Opsional)</label>
-            <input type="date" name="start_date" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-user-lock text-emerald-500"></i>
+                <span>Verifikasi Keamanan Brankas</span>
+            </h3>
+            <button @click="decryptModalOpen = false; decryptError = ''; confirmPassword = '';" 
+                    type="button"
+                    class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
         </div>
 
-        <!-- Tanggal Kadaluarsa (Hanya Aktif Jika Tidak Selamanya) -->
-        <div x-show="!isLifetime" x-transition>
-            <label class="block text-[11px] text-amber-400 font-semibold mb-1">Tanggal Kadaluarsa *</label>
-            <input type="date" name="expires_at" :required="!isLifetime" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-amber-500/40 text-xs text-slate-900 dark:text-white">
-        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+            Masukkan kata sandi akun Anda untuk mendekripsi dan melihat isi rahasia dari aset <strong class="text-slate-900 dark:text-white" x-text="targetAssetTitle"></strong>.
+        </p>
+
+        <form @submit.prevent="submitDecrypt()" class="mt-4 space-y-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    <i class="fa-solid fa-key mr-1 text-emerald-500"></i> Kata Sandi Akun
+                </label>
+                <div class="relative">
+                    <input :type="showConfirmPassword ? 'text' : 'password'" 
+                           x-model="confirmPassword"
+                           placeholder="Masukkan password akun..."
+                           required
+                           class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 pl-3.5 pr-10 py-2.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                    <button type="button" 
+                            @click="showConfirmPassword = !showConfirmPassword"
+                            class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-emerald-500">
+                        <i class="fa-solid" :class="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
+                <template x-if="decryptError">
+                    <p class="text-xs text-rose-500 mt-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span x-text="decryptError"></span>
+                    </p>
+                </template>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" 
+                        @click="decryptModalOpen = false; decryptError = ''; confirmPassword = '';" 
+                        class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">
+                    Batal
+                </button>
+                <button type="submit" 
+                        :disabled="isDecrypting" 
+                        class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50">
+                    <i class="fa-solid fa-unlock-keyhole"></i>
+                    <span x-text="isDecrypting ? 'Memverifikasi...' : 'Buka Dekripsi'"></span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                        <i class="fa-solid fa-user-check mr-1 text-emerald-500"></i> Tugaskan ke Ahli Waris Penerima
+<!-- ========================================================= -->
+<!-- 2. MODAL SIMPAN ASET BARU KE BRANKAS                      -->
+<!-- ========================================================= -->
+<div x-show="showAddAssetModal" 
+     x-cloak 
+     x-data="{ isLifetime: true, startDate: '' }"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm overflow-y-auto">
+    <div @click.away="showAddAssetModal = false" 
+         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl my-8">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-file-shield text-emerald-500"></i>
+                <span>Simpan Aset Baru ke Brankas</span>
+            </h2>
+            <button @click="showAddAssetModal = false" 
+                    type="button"
+                    class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <form action="{{ route('assets.store') }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-4">
+            @csrf
+
+            <!-- Nama / Judul Aset -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <i class="fa-solid fa-heading mr-1 text-emerald-500"></i> Nama / Judul Aset
+                </label>
+                <input type="text" 
+                       name="title" 
+                       required 
+                       placeholder="Contoh: Deposito & E-Banking BCA Utama"
+                       class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+            </div>
+
+            <!-- Kategori Aset -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <i class="fa-solid fa-tags mr-1 text-emerald-500"></i> Kategori Aset
+                </label>
+                <select name="category" 
+                        class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                    <option value="Finansial">Rekening Bank / Finansial</option>
+                    <option value="Kredensial Akun">Crypto / Seed Phrase</option>
+                    <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
+                    <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
+                </select>
+            </div>
+
+            <!-- Isi Kredensial / Instruksi Rahasia -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <i class="fa-solid fa-key mr-1 text-emerald-500"></i> Isi Kredensial / Instruksi Rahasia (Akan Dienkripsi)
+                </label>
+                <textarea name="secret_content" 
+                          rows="4" 
+                          required 
+                          placeholder="Tuliskan nomor rekening, PIN, seed phrase, atau instruksi pencairan..."
+                          class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-slate-900 dark:text-white font-mono text-xs focus:border-emerald-500 focus:outline-none"></textarea>
+            </div>
+
+            <!-- Lampiran Dokumen -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <i class="fa-solid fa-paperclip mr-1 text-emerald-500"></i> Lampiran Dokumen (Opsional, PDF/JPG/PNG maks 5MB)
+                </label>
+                <input type="file" 
+                       name="attachment" 
+                       accept=".pdf,.jpg,.jpeg,.png"
+                       class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-200 dark:file:bg-slate-800 file:text-slate-700 dark:file:text-slate-300">
+            </div>
+
+            <!-- Masa Berlaku Dokumen / Aset -->
+            <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        <i class="fa-regular fa-calendar-check mr-1 text-emerald-500"></i> Masa Berlaku Aset
                     </label>
-                    @if($beneficiaries->isEmpty())
-                        <p class="text-xs text-amber-600 dark:text-amber-400">
-                            <i class="fa-solid fa-circle-info mr-1"></i> Belum ada ahli waris. Tambahkan di tab "Daftar Ahli Waris".
-                        </p>
-                    @else
-                        <div class="space-y-1.5 max-h-32 overflow-y-auto p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800">
-                            @foreach($beneficiaries as $person)
-                                <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                    <input type="checkbox" name="beneficiary_ids[]" value="{{ $person->id }}" class="rounded border-slate-400 dark:border-slate-700 text-emerald-500 focus:ring-emerald-500">
-                                    <span>{{ $person->name }} <span class="text-slate-500">({{ $person->relationship }})</span></span>
-                                </label>
-                            @endforeach
-                        </div>
-                    @endif
+                    
+                    <!-- Checkbox Opsi Selamanya -->
+                    <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" 
+                               name="is_lifetime" 
+                               value="1" 
+                               x-model="isLifetime" 
+                               class="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                        <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Berlaku Selamanya (&infin;)</span>
+                    </label>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                    <button type="button" @click="showAddAssetModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">Batal</button>
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-lock"></i>
-                        <span>Enkripsi & Simpan</span>
-                    </button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Tanggal Awal -->
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">Tanggal Mulai / Terbit (Opsional)</label>
+                        <input type="date" 
+                               name="start_date" 
+                               x-model="startDate"
+                               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+
+                    <!-- Tanggal Kadaluarsa -->
+                    <div x-show="!isLifetime" x-transition>
+                        <label class="block text-[11px] text-amber-500 font-semibold mb-1">Tanggal Kadaluarsa *</label>
+                        <input type="date" 
+                               name="expires_at" 
+                               :required="!isLifetime" 
+                               :min="startDate || null"
+                               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-amber-500/50 text-xs text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none">
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Penugasan Ahli Waris -->
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    <i class="fa-solid fa-user-check mr-1 text-emerald-500"></i> Tugaskan ke Ahli Waris Penerima
+                </label>
+                @if($beneficiaries->isEmpty())
+                    <p class="text-xs text-amber-600 dark:text-amber-400">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Belum ada ahli waris. Tambahkan di tab "Daftar Ahli Waris".
+                    </p>
+                @else
+                    <div class="space-y-1.5 max-h-32 overflow-y-auto p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800">
+                        @foreach($beneficiaries as $person)
+                            <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer hover:text-emerald-500">
+                                <input type="checkbox" 
+                                       name="beneficiary_ids[]" 
+                                       value="{{ $person->id }}" 
+                                       class="rounded border-slate-400 dark:border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                                <span>{{ $person->name }} <span class="text-slate-400">({{ $person->relationship }})</span></span>
+                            </label>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tombol Aksi Form -->
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" 
+                        @click="showAddAssetModal = false" 
+                        class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">
+                    Batal
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Enkripsi & Simpan</span>
+                </button>
+            </div>
+        </form>
     </div>
+</div>
+
 <!-- MODAL BUKA LAMPIRAN TERPROTEKSI PASSWORD -->
     <div x-show="attachModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
         <div @click.away="attachModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
@@ -1074,9 +1131,7 @@
             </form>
         </div>
     </div>
-    <!-- ========================================================= -->
-<!-- 1. MODAL POP-UP OTOMATIS: PERINGATAN ASET MAU KADALUARSA  -->
-<!-- ========================================================= -->
+    <!-- 1. MODAL POP-UP OTOMATIS: PERINGATAN ASET MAU KADALUARSA  -->
 @if($expiringCount > 0)
 <template x-teleport="body">
     <div x-show="expiryAlertModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
@@ -1123,9 +1178,7 @@
 </template>
 @endif
 
-<!-- ========================================================= -->
 <!-- 2. MODAL EDIT ASET (WAJIB INPUT PASSWORD AKUN)            -->
-<!-- ========================================================= -->
 <template x-teleport="body">
     <div x-show="editModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
         <div @click.away="editModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl">
@@ -1187,9 +1240,7 @@
     </div>
 </template>
 
-<!-- ========================================================= -->
 <!-- 3. MODAL HAPUS ASET (WAJIB INPUT PASSWORD AKUN)           -->
-<!-- ========================================================= -->
 <template x-teleport="body">
     <div x-show="deleteModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
         <div @click.away="deleteModalOpen = false" class="bg-white dark:bg-slate-900 border border-rose-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl">
