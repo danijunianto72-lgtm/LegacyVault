@@ -16,24 +16,10 @@ class AdminPaymentController extends Controller
     {
         abort_unless($request->user()->isAdmin(), 403, 'Akses khusus Administrator.');
 
-        $pendingPayments = Payment::with(['user', 'plan'])
-            ->where('status', 'pending')
-            ->latest()
-            ->get();
+       $pendingPayments = Payment::with(['user', 'plan'])->where('status', 'pending')->latest()->get();
+    $processedPayments = Payment::with(['user', 'plan'])->where('status', '!=', 'pending')->latest()->paginate(10);
 
-        $processedPayments = Payment::with(['user', 'plan'])
-            ->whereIn('status', ['approved', 'rejected'])
-            ->latest('verified_at')
-            ->take(20)
-            ->get();
-
-        // Ambil 25 Log Aktivitas Seluruh Pengguna Sistem untuk Audit Admin
-        $activityLogs = ActivityLog::with('user')
-            ->latest()
-            ->take(25)
-            ->get();
-
-        return view('admin.payments', compact('pendingPayments', 'processedPayments', 'activityLogs'));
+    return view('admin.payments', compact('pendingPayments', 'processedPayments'));
     }
 
     public function approve(Request $request, Payment $payment): RedirectResponse

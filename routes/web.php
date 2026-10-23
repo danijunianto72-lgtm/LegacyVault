@@ -71,6 +71,7 @@ Route::post('/logout', function (Request $request) {
 
 // Protected Area (Wajib Login)
 Route::middleware('auth')->group(function () {
+    Route::post('/assets/{asset}/request-extension', [AssetController::class, 'requestExtension'])->name('assets.requestExtension');
     // Halaman Syarat Legalitas & Panduan Penggunaan (Onboarding)
     Route::get('/onboarding', function () {
         if (Auth::user()->isAdmin()) {
@@ -102,10 +103,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/switch/simulate-reminder', [AssetController::class, 'simulateReminder'])->name('switch.simulate');
     Route::put('/switch/interval', [AssetController::class, 'updateInterval'])->name('switch.interval');
 
-    // Panel Khusus Admin Verifikator
-    Route::prefix('admin')->name('admin.')->group(function () {
-        Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
-        Route::post('/payments/{payment}/approve', [AdminPaymentController::class, 'approve'])->name('payments.approve');
-        Route::post('/payments/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
-    });
+    // Admin Routes (auth & admin check)
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Payments
+    Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::post('/payments/{payment}/approve', [AdminPaymentController::class, 'approve'])->name('payments.approve');
+    Route::post('/payments/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
+
+    // Monitoring & Perpanjangan Aset (File Baru)
+    Route::get('/assets', [AdminAssetMonitoringController::class, 'index'])->name('assets.index');
+    Route::post('/assets/{asset}/approve-extension', [AdminAssetMonitoringController::class, 'approveExtension'])->name('assets.approveExtension');
+    Route::post('/assets/{asset}/reject-extension', [AdminAssetMonitoringController::class, 'rejectExtension'])->name('assets.rejectExtension');
+
+    // Log Audit Terpisah
+    Route::get('/logs', [AdminLogController::class, 'index'])->name('logs.index');
+});
 });

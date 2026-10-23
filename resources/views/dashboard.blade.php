@@ -2,6 +2,7 @@
 
 @section('content')
 @php
+$approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
     $isUnlimited = ($currentPlan->max_assets < 0 || $currentPlan->max_assets >= 9999);
     $quotaLabel = $isUnlimited ? 'Unlimited' : $currentPlan->max_assets;
     $percent = $isUnlimited ? 100 : min(100, round(($totalAssetsCount / max(1, $currentPlan->max_assets)) * 100));
@@ -516,6 +517,10 @@
         <!-- Daftar Kartu Aset -->
         <div class="space-y-4">
             @forelse($assets as $asset)
+            @php
+    $isExpired = $asset->isExpired();
+    $isLocked = $isExpired && ($asset->extension_status !== 'approved');
+@endphp
                 @php
                     $iconClass = match($asset->category) {
                         'Finansial' => 'fa-building-columns',
@@ -586,7 +591,33 @@
                             </button>
                         </div>
                     </div>
+@if($isLocked)
+                        <!-- Banner Aset Terkunci Kadaluarsa -->
+                        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="text-xs font-bold text-rose-500 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span>ASET TERKUNCI KARENA KADALUARSA</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                    Aset tidak dapat didekripsi. Ajukan permohonan ke admin agar kunci dibuka dan Anda dapat memperbarui masa berlakunya.
+                                </p>
+                            </div>
 
+                            @if($asset->extension_status === 'pending')
+                                <span class="px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-500 font-bold text-xs shrink-0 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> Menunggu Verifikasi Admin
+                                </span>
+                            @else
+                                <form action="{{ route('assets.requestExtension', $asset) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition shrink-0 flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
+                                        <i class="fa-solid fa-key"></i> Ajukan Perpanjangan ke Admin
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @else
                     <!-- Box Isi Rahasia -->
                     <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/90 flex items-center justify-between gap-4">
                         <div class="font-mono text-xs overflow-x-auto">
@@ -600,7 +631,7 @@
                                 <div class="text-emerald-700 dark:text-emerald-300 whitespace-pre-line leading-relaxed" x-text="unlockedSecrets[{{ $asset->id }}]"></div>
                             </template>
                         </div>
-
+@endif
                         <button type="button" 
                                 @click="openDecryptModal({{ $asset->id }}, '{{ addslashes($asset->title) }}')"
                                 class="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-500 transition shrink-0"
@@ -866,7 +897,7 @@
          class="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm overflow-y-auto">
         <div @click.away="showAddAssetModal = false" 
              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl my-8">
-             
+
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                 <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-file-shield text-emerald-500"></i>
@@ -1266,6 +1297,33 @@
         </div>
     </div>
 </template>
+@if($approvedExtensionAsset)
+<template x-teleport="body">
+    <div x-data="{ approvedModalOpen: true }" x-show="approvedModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center space-y-4">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-3xl">
+                <i class="fa-solid fa-unlock-keyhole"></i>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Admin Telah Menyetujui Perpanjangan!</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400">
+                Akses ke aset <strong class="text-white">{{ $approvedExtensionAsset->title }}</strong> telah dibuka sementara. Harap segera lakukan pembaharuan tanggal masa berlaku sekarang.
+            </p>
+            <button type="button" 
+                    @click="approvedModalOpen = false; openEditModal({
+                        id: {{ $approvedExtensionAsset->id }},
+                        title: '{{ addslashes($approvedExtensionAsset->title) }}',
+                        category: '{{ $approvedExtensionAsset->category }}',
+                        start_date: '{{ $approvedExtensionAsset->start_date ? $approvedExtensionAsset->start_date->format('Y-m-d') : '' }}',
+                        expires_at: '{{ $approvedExtensionAsset->expires_at ? $approvedExtensionAsset->expires_at->format('Y-m-d') : '' }}',
+                        is_lifetime: {{ $approvedExtensionAsset->is_lifetime ? 'true' : 'false' }}
+                    })"
+                    class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition">
+                Edit Tanggal Sekarang
+            </button>
+        </div>
+    </div>
+</template>
+@endif
 </div> <!-- Penutup <div class="space-y-8" x-data="..."> -->
 
 @endsection 

@@ -179,7 +179,7 @@ public function update(Request $request, Asset $asset): RedirectResponse
         'attachment_path' => $path,
         'start_date' => $validated['start_date'] ?? null,
         'is_lifetime' => $isLifetime,
-        'expires_at' => $isLifetime ? null : ($validated['expires_at'] ?? null),
+'extension_status' => 'none',
     ];
 
     if (!empty($validated['secret_content'])) {
@@ -356,4 +356,18 @@ public function updateInterval(Request $request): RedirectResponse
 
         return back()->with('success', 'Interval rutin check-in berhasil diperbarui.');
     }
+    public function requestExtension(Request $request, Asset $asset)
+{
+    abort_unless($asset->user_id === $request->user()->id, 403);
+
+    if (!$asset->isExpired()) {
+        return back()->with('error', 'Aset ini belum kadaluarsa.');
+    }
+
+    $asset->update(['extension_status' => 'pending']);
+
+    ActivityLog::record('REQUEST_EXTENSION', "Mengajukan permohonan perpanjangan aset: {$asset->title}");
+
+    return back()->with('success', 'Permohonan perpanjangan berhasil diajukan ke admin. Harap tunggu persetujuan.');
+}
 }

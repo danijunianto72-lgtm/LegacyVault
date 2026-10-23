@@ -158,7 +158,10 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+    {{ $processedPayments->links() }}
+</div>
         </div>
     </div>
 </div>
-@endsection
+@endsection 

@@ -19,6 +19,7 @@ class Asset extends Model
         'start_date',
         'expires_at',
         'is_lifetime',
+        'extension_status', 
     ];
 
 protected function casts(): array
