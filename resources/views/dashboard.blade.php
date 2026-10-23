@@ -1131,7 +1131,11 @@
             </form>
         </div>
     </div>
-    <!-- 1. MODAL POP-UP OTOMATIS: PERINGATAN ASET MAU KADALUARSA  -->
+   
+</div>
+
+@endsection
+ <!-- 1. MODAL POP-UP OTOMATIS: PERINGATAN ASET MAU KADALUARSA  -->
 @if($expiringCount > 0)
 <template x-teleport="body">
     <div x-show="expiryAlertModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
@@ -1268,5 +1272,3 @@
         </div>
     </div>
 </template>
-</div>
-@endsection
