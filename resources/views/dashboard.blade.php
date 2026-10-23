@@ -859,14 +859,14 @@
     <!-- ========================================================= -->
     <!-- MODAL 2: SIMPAN ASET BARU KE BRANKAS                       -->
     <!-- ========================================================= -->
-     <template x-teleport="body">
+   <template x-teleport="body">
     <div x-show="showAddAssetModal" 
          x-cloak 
          x-data="{ isLifetime: true, startDate: '' }"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm overflow-y-auto">
+         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm overflow-y-auto">
         <div @click.away="showAddAssetModal = false" 
              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl my-8">
-            
+             
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                 <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-file-shield text-emerald-500"></i>
@@ -981,12 +981,8 @@
     <!-- ========================================================= -->
     <!-- MODAL 3: BUKA LAMPIRAN TERPROTEKSI PASSWORD               -->
     <!-- ========================================================= -->
-   <div x-show="showAddAssetModal" 
-         x-cloak 
-         x-data="{ isLifetime: true, startDate: '' }"
-         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm overflow-y-auto">
-        <div @click.away="showAddAssetModal = false" 
-             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl my-8">
+    <div x-show="attachModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div @click.away="attachModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                 <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved text-emerald-500"></i>
