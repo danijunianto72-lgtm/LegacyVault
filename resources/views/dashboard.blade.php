@@ -18,6 +18,7 @@
         editModalOpen: false,
         deleteModalOpen: false,
         showAddAssetModal: false,
+        noBeneficiaryModalOpen,
         selectedAsset: {
             id: null,
             title: '',
@@ -424,11 +425,16 @@
                 <span class="px-3.5 py-2 rounded-full text-xs font-semibold bg-slate-200/70 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                     Terpakai {{ $totalAssetsCount }} / {{ $quotaLabel }} Aset
                 </span>
-                <button @click="showAddAssetModal = true" 
-                        class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Tambah Aset Baru</span>
-                </button>
+               <button type="button"
+                    @click="if ({{ $beneficiaries->isEmpty() ? 'true' : 'false' }}) { 
+                        noBeneficiaryModalOpen = true; 
+                    } else { 
+                        showAddAssetModal = true; 
+                    }"
+                    class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i>
+                <span>Tambah Aset Baru</span>
+            </button>
             </div>
         </div>
 
@@ -1199,6 +1205,48 @@
         </div>
     </template>
 
+    <!-- ========================================================= -->
+<!-- MODAL: PERINGATAN WAJIB DAFTAR AHLI WARIS TERLEBIH DAHULU -->
+<!-- ========================================================= -->
+<template x-teleport="body">
+    <div x-show="noBeneficiaryModalOpen" 
+         x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div @click.away="noBeneficiaryModalOpen = false" 
+             class="bg-white dark:bg-slate-900 border border-amber-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 text-center">
+            
+            <!-- Ikon Peringatan -->
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 text-2xl shadow-inner">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+
+            <!-- Teks Peringatan -->
+            <div class="space-y-2">
+                <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">
+                    Belum Memiliki Ahli Waris
+                </h3>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Setiap aset brankas digital wajib memiliki penerima hak waris. Silakan daftarkan minimal <strong>1 Ahli Waris</strong> terlebih dahulu sebelum menambahkan data aset rahasia.
+                </p>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-end gap-2.5">
+                <button type="button" 
+                        @click="noBeneficiaryModalOpen = false" 
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    Nanti Saja
+                </button>
+                <button type="button" 
+                        @click="noBeneficiaryModalOpen = false; activeTab = 'beneficiaries'; window.scrollTo({ top: 0, behavior: 'smooth' });" 
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Daftarkan Ahli Waris Sekarang</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
 </div> <!-- Penutup <div class="space-y-8" x-data="..."> -->
 
-@endsection
+@endsection 
