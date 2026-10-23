@@ -14,7 +14,7 @@
 <div class="space-y-8" 
      x-data="{ 
         filterExpiringOnly: false,
-        expiryAlertModalOpen: {{ $expiringCount > 0 ? 'true' : 'false' }},
+        expiryAlertModalOpen: false,
         editModalOpen: false,
         deleteModalOpen: false,
         showAddAssetModal: false,
@@ -148,7 +148,12 @@
             this.editBenForm = { ...person };
             this.editBeneficiaryModal = true;
         }
-     }">
+     }"
+      x-init="
+        if ({{ $expiringCount > 0 ? 'true' : 'false' }} && !sessionStorage.getItem('expiry_alert_shown')) {
+            expiryAlertModalOpen = true;
+            sessionStorage.setItem('expiry_alert_shown', 'true');
+        }">
 
     <!-- KOMPONEN SAKELAR OTOMATIS (DEAD MAN'S SWITCH) -->
     @php
@@ -567,7 +572,8 @@
                                         title: '{{ addslashes($asset->title) }}',
                                         start_date: '{{ $asset->start_date ? $asset->start_date->format('Y-m-d') : '' }}',
                                         expires_at: '{{ $asset->expires_at ? $asset->expires_at->format('Y-m-d') : '' }}',
-                                        is_lifetime: {{ $asset->is_lifetime ? 'true' : 'false' }}
+                                        is_lifetime: {{ $asset->is_lifetime ? 'true' : 'false' }},
+                                        category: '{{ $asset->category }}',
                                     })"
                                     class="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition" title="Edit Aset">
                                 <i class="fa-solid fa-pen-to-square text-sm"></i>
@@ -1164,6 +1170,18 @@
                         </label>
                         <input type="password" name="account_password" required placeholder="Masukkan password login untuk menyimpan perubahan" class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
                     </div>
+                    <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Kategori Aset</label>
+                    <select name="category" 
+                            x-model="selectedAsset.category" 
+                            required 
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                        <option value="Finansial">Rekening Bank / Finansial</option>
+                        <option value="Kredensial Akun">Crypto / Seed Phrase</option>
+                        <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
+                        <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
+                    </select>
+                </div>
 
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="editModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Batal</button>
