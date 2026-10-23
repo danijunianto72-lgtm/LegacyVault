@@ -16,8 +16,44 @@ class Asset extends Model
         'category',
         'encrypted_payload',
         'attachment_path',
+        'start_date',
+        'expires_at',
+        'is_lifetime',
     ];
 
+protected function casts(): array
+{
+    return [
+        'start_date' => 'date',
+        'expires_at' => 'date',
+        'is_lifetime' => 'boolean',
+    ];
+}
+
+/**
+ * Cek apakah aset mau kadaluarsa (<= 7 hari lagi) atau sudah lewat
+ */
+public function isExpiringSoon(): bool
+{
+    if ($this->is_lifetime || !$this->expires_at) {
+        return false;
+    }
+
+    $daysLeft = now()->startOfDay()->diffInDays($this->expires_at->startOfDay(), false);
+    return $daysLeft <= 7; // Termasuk yang kurang dari 7 hari atau sudah minus (lewat)
+}
+
+/**
+ * Hitung sisa hari
+ */
+public function daysRemaining(): ?int
+{
+    if ($this->is_lifetime || !$this->expires_at) {
+        return null;
+    }
+
+    return (int) now()->startOfDay()->diffInDays($this->expires_at->startOfDay(), false);
+}
     // Accessor & Mutator untuk deskripsi/enkripsi otomatis
     protected function secretContent(): Attribute
     {

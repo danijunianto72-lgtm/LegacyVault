@@ -5,9 +5,35 @@
     $isUnlimited = ($currentPlan->max_assets < 0 || $currentPlan->max_assets >= 9999);$quotaLabel = $isUnlimited ? 'Unlimited' : $currentPlan->max_assets;
     $percent =$isUnlimited ? 100 : min(100, round(($totalAssetsCount / max(1,$currentPlan->max_assets)) * 100));
 @endphp
+@php
+    // Filter aset yang kadaluarsa <= 7 hari lagi (dan bukan 'Selamanya')
+    $expiringAssets = $assets->filter(fn($item) => $item->isExpiringSoon());
+    $expiringCount = $expiringAssets->count();
+@endphp
 
 <div class="space-y-8" 
      x-data="{ 
+        filterExpiringOnly: false,
+        expiryAlertModalOpen: {{ $expiringCount > 0 ? 'true' : 'false' }},
+        editModalOpen: false,
+        deleteModalOpen: false,
+        selectedAsset: {
+            id: null,
+            title: '',
+            category: '',
+            start_date: '',
+            expires_at: '',
+            is_lifetime: true
+        },
+        openEditModal(asset) {
+            this.selectedAsset = asset;
+            this.editModalOpen = true;
+        },
+        openDeleteModal(asset) {
+            this.selectedAsset = asset;
+            this.deleteModalOpen = true;
+        }
+    }   
          tab: 'vault',
          showAddAssetModal: false,
 
@@ -312,8 +338,8 @@
 
     </div>
     <!-- Ringkasan Status Langganan & Kuota -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
             <div>
                 <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-award text-emerald-500"></i> Paket Saat Ini
@@ -357,6 +383,34 @@
                 <i class="fa-solid fa-shield-halved text-emerald-500"></i> Terhubung dengan distribusi wasiat
             </div>
         </div>
+        <div @click="if({{ $expiringCount }} > 0) { activeTab = 'assets'; filterExpiringOnly = true; document.getElementById('assets-section')?.scrollIntoView({ behavior: 'smooth' }); }"
+         class="p-5 rounded-3xl bg-white dark:bg-[#0b1329] border {{ $expiringCount > 0 ? 'border-amber-500/50 cursor-pointer hover:border-amber-400' : 'border-slate-200 dark:border-slate-800' }} flex flex-col justify-between transition">
+        <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider {{ $expiringCount > 0 ? 'text-amber-500' : 'text-slate-400' }} flex items-center gap-1.5">
+                <i class="fa-solid fa-hourglass-half"></i> Masa Berlaku Aset
+            </span>
+            @if($expiringCount > 0)
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-extrabold animate-pulse">
+                    Perlu Cek!
+                </span>
+            @endif
+        </div>
+        <div class="my-2">
+            <span class="text-3xl font-extrabold {{ $expiringCount > 0 ? 'text-amber-400' : 'text-slate-900 dark:text-white' }}">
+                {{ $expiringCount }}
+            </span>
+            <span class="text-xs text-slate-400 ml-1">Aset</span>
+        </div>
+        <div class="text-xs {{ $expiringCount > 0 ? 'text-amber-400 font-medium' : 'text-emerald-500' }} flex items-center gap-1.5">
+            @if($expiringCount > 0)
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Kadaluarsa &le; 7 hari (Klik lihat)</span>
+            @else
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Semua masa berlaku aman</span>
+            @endif
+        </div>
+    </div>
     </div>
 
     <!-- Navigasi Tab Utama -->
@@ -411,7 +465,66 @@
                     'Pesan Wasiat' => 'Pesan Wasiat',
                 ];
             @endphp
+<!-- Banner Filter Aset Kadaluarsa (Muncul saat tombol di Pop-up diklik) -->
+<div x-show="filterExpiringOnly" x-cloak class="mb-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+    <div class="text-xs text-amber-400 font-semibold flex items-center gap-2">
+        <i class="fa-solid fa-filter"></i>
+        <span>Menampilkan khusus aset yang akan/sudah kadaluarsa (&le; 7 hari)</span>
+    </div>
+    <button @click="filterExpiringOnly = false" type="button" class="px-3 py-1 rounded-xl bg-slate-800 text-xs text-white hover:bg-slate-700">
+        Tampilkan Semua Aset
+    </button>
+</div>
 
+<!-- Di dalam perulangan @foreach($assets as $asset) tambahkan x-show filter & tombol aksi: -->
+@foreach($assets as $asset)
+    <div x-show="!filterExpiringOnly || {{ $asset->isExpiringSoon() ? 'true' : 'false' }}" 
+         class="p-5 rounded-2xl bg-white dark:bg-[#0b1329] border {{ $asset->isExpiringSoon() ? 'border-amber-500/50' : 'border-slate-200 dark:border-slate-800' }} flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        
+        <div>
+            <!-- Judul Aset & Badge Masa Berlaku -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="font-bold text-slate-900 dark:text-white text-sm">{{ $asset->title }}</h4>
+                @if($asset->is_lifetime)
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
+                        &infin; Selamanya
+                    </span>
+                @elseif($asset->isExpiringSoon())
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold">
+                        <i class="fa-solid fa-clock mr-1"></i>
+                        {{ $asset->daysRemaining() < 0 ? 'Sudah Kadaluarsa!' : 'Kadaluarsa ' . $asset->daysRemaining() . ' hari lagi (' . $asset->expires_at->format('d/m/Y') . ')' }}
+                    </span>
+                @elseif($asset->expires_at)
+                    <span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px]">
+                        Berlaku s/d {{ $asset->expires_at->format('d/m/Y') }}
+                    </span>
+                @endif
+            </div>
+        </div>
+
+        <!-- Tombol Edit & Hapus (Memicu Modal Password) -->
+        <div class="flex items-center gap-2">
+            <button type="button"
+                    @click="openEditModal({
+                        id: {{ $asset->id }},
+                        title: '{{ addslashes($asset->title) }}',
+                        start_date: '{{ $asset->start_date ? $asset->start_date->format('Y-m-d') : '' }}',
+                        expires_at: '{{ $asset->expires_at ? $asset->expires_at->format('Y-m-d') : '' }}',
+                        is_lifetime: {{ $asset->is_lifetime ? 'true' : 'false' }}
+                    })"
+                    class="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+            </button>
+
+            <button type="button"
+                    @click="openDeleteModal({ id: {{ $asset->id }}, title: '{{ addslashes($asset->title) }}' })"
+                    class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-trash"></i> Hapus
+            </button>
+        </div>
+
+    </div>
+@endforeach
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <!-- Pill Kategori -->
                 <div class="flex flex-wrap items-center gap-2">
@@ -816,6 +929,31 @@
                     <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png"
                            class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-200 dark:file:bg-slate-800 file:text-slate-700 dark:file:text-slate-300">
                 </div>
+                <div x-data="{ isLifetime: true }" class="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+    <div class="flex items-center justify-between">
+        <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Masa Berlaku Dokumen / Aset</label>
+        
+        <!-- Checkbox Opsi Selamanya -->
+        <label class="inline-flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="is_lifetime" value="1" x-model="isLifetime" class="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500">
+            <span class="text-xs font-semibold text-emerald-500">Berlaku Selamanya (&infin;)</span>
+        </label>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Tanggal Awal -->
+        <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Tanggal Mulai / Terbit (Opsional)</label>
+            <input type="date" name="start_date" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
+        </div>
+
+        <!-- Tanggal Kadaluarsa (Hanya Aktif Jika Tidak Selamanya) -->
+        <div x-show="!isLifetime" x-transition>
+            <label class="block text-[11px] text-amber-400 font-semibold mb-1">Tanggal Kadaluarsa *</label>
+            <input type="date" name="expires_at" :required="!isLifetime" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-amber-500/40 text-xs text-slate-900 dark:text-white">
+        </div>
+    </div>
+</div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
@@ -936,5 +1074,148 @@
             </form>
         </div>
     </div>
+    <!-- ========================================================= -->
+<!-- 1. MODAL POP-UP OTOMATIS: PERINGATAN ASET MAU KADALUARSA  -->
+<!-- ========================================================= -->
+@if($expiringCount > 0)
+<template x-teleport="body">
+    <div x-show="expiryAlertModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div @click.away="expiryAlertModalOpen = false" class="bg-white dark:bg-slate-900 border border-amber-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div class="flex items-start gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Peringatan Masa Berlaku Aset!</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Terdapat <strong class="text-amber-400">{{ $expiringCount }} aset brankas</strong> yang masa berlakunya kurang dari 7 hari atau telah habis.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Daftar Singkat Aset yang Mau Kadaluarsa -->
+            <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                @foreach($expiringAssets as $expAsset)
+                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-amber-500/20 flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 dark:text-white">{{ $expAsset->title }}</div>
+                            <div class="text-[11px] text-slate-400">Berakhir: {{ $expAsset->expires_at->format('d M Y') }}</div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 text-[10px] font-bold">
+                            {{ $expAsset->daysRemaining() < 0 ? 'Lewat ' . abs($expAsset->daysRemaining()) . ' hr' : $expAsset->daysRemaining() . ' hari lagi' }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" @click="expiryAlertModalOpen = false" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">
+                    Nanti Saja
+                </button>
+                <button type="button" 
+                        @click="expiryAlertModalOpen = false; activeTab = 'assets'; filterExpiringOnly = true; setTimeout(() => document.getElementById('assets-section')?.scrollIntoView({ behavior: 'smooth' }), 150)" 
+                        class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-eye"></i> Lihat Aset Kadaluarsa
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+@endif
+
+<!-- ========================================================= -->
+<!-- 2. MODAL EDIT ASET (WAJIB INPUT PASSWORD AKUN)            -->
+<!-- ========================================================= -->
+<template x-teleport="body">
+    <div x-show="editModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div @click.away="editModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl">
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-emerald-500"></i> Edit Aset Brankas
+            </h3>
+
+            <form :action="'/assets/' + selectedAsset.id" method="POST" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+                @method('PUT')
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Nama / Judul Aset</label>
+                    <input type="text" name="title" x-model="selectedAsset.title" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white">
+                </div>
+
+                <!-- Masa Berlaku -->
+                <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400">Masa Berlaku</span>
+                        <label class="inline-flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="is_lifetime" value="1" x-model="selectedAsset.is_lifetime" class="rounded border-slate-700 text-emerald-500">
+                            <span class="text-xs font-bold text-emerald-500">Berlaku Selamanya (&infin;)</span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">Tanggal Mulai</label>
+                            <input type="date" name="start_date" x-model="selectedAsset.start_date" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
+                        </div>
+                        <div x-show="!selectedAsset.is_lifetime">
+                            <label class="block text-[11px] text-amber-400 font-semibold mb-1">Tanggal Kadaluarsa *</label>
+                            <input type="date" name="expires_at" x-model="selectedAsset.expires_at" :required="!selectedAsset.is_lifetime" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-amber-500/40 text-xs text-slate-900 dark:text-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ganti Lampiran File (Opsional) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Perbarui Lampiran Dokumen/Foto (Opsional)</label>
+                    <input type="file" name="attachment" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-emerald-500/15 file:text-emerald-400 file:font-bold">
+                </div>
+
+                <!-- Verifikasi Password Akun -->
+                <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5">
+                    <label class="block text-xs font-bold text-amber-400">
+                        <i class="fa-solid fa-lock mr-1"></i> Konfirmasi Kata Sandi Akun Anda *
+                    </label>
+                    <input type="password" name="account_password" required placeholder="Masukkan password login untuk menyimpan perubahan" class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="editModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Batal</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</template>
+
+<!-- ========================================================= -->
+<!-- 3. MODAL HAPUS ASET (WAJIB INPUT PASSWORD AKUN)           -->
+<!-- ========================================================= -->
+<template x-teleport="body">
+    <div x-show="deleteModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div @click.away="deleteModalOpen = false" class="bg-white dark:bg-slate-900 border border-rose-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-base font-extrabold text-rose-500 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-trash-can"></i> Konfirmasi Hapus Aset
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">
+                Anda akan menghapus aset <strong class="text-white" x-text="selectedAsset.title"></strong>. Masukkan kata sandi akun Anda untuk melanjutkan.
+            </p>
+
+            <form :action="'/assets/' + selectedAsset.id" method="POST" class="space-y-4">
+                @csrf
+                @method('DELETE')
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Kata Sandi Akun *</label>
+                    <input type="password" name="account_password" required placeholder="Masukkan password akun Anda..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-rose-500/30 text-xs text-slate-900 dark:text-white">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Batal</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-extrabold">Ya, Hapus Permanen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</template>
 </div>
 @endsection

@@ -61,45 +61,7 @@ class AssetController extends Controller
         ));
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $user = $request->user();
-
-        if (!$user->canCreateAsset()) {
-            return back()->with('error', 'Kuota brankas Anda telah penuh! Silakan upgrade paket langganan.');
-        }
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:150',
-            'category' => 'required|in:Finansial,Dokumen Rahasia,Kredensial Akun,Pesan Wasiat',
-            'secret_content' => 'required|string',
-            'attachment' => 'nullable|file|max:5120',
-            'beneficiary_ids' => 'nullable|array',
-            'beneficiary_ids.*' => 'exists:beneficiaries,id',
-        ]);
-
-        $path = null;
-        if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
-$path = $request->file('attachment')->store('', 'supabase');        }
-
-        $asset = $user->assets()->create([
-            'title' => $validated['title'],
-            'category' => $validated['category'],
-            'encrypted_payload' => Crypt::encryptString($validated['secret_content']),
-            'attachment_path' => $path,
-        ]);
-
-        if (!empty($validated['beneficiary_ids'])) {
-            $validBeneficiaryIds = $user->beneficiaries()
-                ->whereIn('id', $validated['beneficiary_ids'])
-                ->pluck('id');
-            $asset->beneficiaries()->sync($validBeneficiaryIds);
-        }
-
-        ActivityLog::record('CREATE_ASSET', "Menambahkan aset terenkripsi baru: {$asset->title} ({$asset->category})");
-
-        return back()->with('success', 'Aset dan berkas rahasia berhasil dienkripsi dan disimpan.');
-    }
+    
 
     public function decrypt(Request $request, Asset $asset): JsonResponse
     {
@@ -123,22 +85,149 @@ $path = $request->file('attachment')->store('', 'supabase');        }
         ]);
     }
 
-    public function destroy(Request $request, Asset $asset): RedirectResponse
-    {
-        abort_unless($asset->user_id === $request->user()->id, 403);
+    public function store(Request $request): RedirectResponse
+{
+    $user = $request->user();
 
-        $title = $asset->title;
-
-        if ($asset->attachment_path) {
-            Storage::disk('supabase')->delete($asset->attachment_path);
-        }
-
-        $asset->delete();
-
-        ActivityLog::record('DELETE_ASSET', "Menghapus permanen aset dari brankas: {$title}");
-
-        return back()->with('success', 'Aset berhasil dihapus dari brankas.');
+    if (!$user->canCreateAsset()) {
+        return back()->with('error', 'Kuota brankas Anda telah penuh! Silakan upgrade paket langganan.');
     }
+
+    $isLifetime = $request->boolean('is_lifetime');
+
+    $validated = $request->validate([
+        'title' => 'required|string|max:150',
+        'category' => 'required|in:Finansial,Dokumen Rahasia,Kredensial Akun,Pesan Wasiat',
+        'secret_content' => 'required|string',
+        'attachment' => 'nullable|file|max:5120',
+        'beneficiary_ids' => 'nullable|array',
+        'beneficiary_ids.*' => 'exists:beneficiaries,id',
+        'start_date' => 'nullable|date',
+        'is_lifetime' => 'nullable|boolean',
+        'expires_at' => [$isLifetime ? 'nullable' : 'required', 'nullable', 'date', 'after_or_equal:start_date'],
+    ], [
+        'expires_at.required' => 'Tanggal kadaluarsa wajib diisi jika aset tidak disetel selamanya.',
+        'expires_at.after_or_equal' => 'Tanggal kadaluarsa tidak boleh mendahului tanggal mulai.',
+    ]);
+
+    $path = null;
+    if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
+        $path = $request->file('attachment')->store('', 'supabase'); 
+    }
+
+    $asset = $user->assets()->create([
+        'title' => $validated['title'],
+        'category' => $validated['category'],
+        'encrypted_payload' => Crypt::encryptString($validated['secret_content']),
+        'attachment_path' => $path,
+        'start_date' => $validated['start_date'] ?? null,
+        'is_lifetime' => $isLifetime,
+        'expires_at' => $isLifetime ? null : ($validated['expires_at'] ?? null),
+    ]);
+
+    if (!empty($validated['beneficiary_ids'])) {
+        $validBeneficiaryIds = $user->beneficiaries()
+            ->whereIn('id', $validated['beneficiary_ids'])
+            ->pluck('id');
+        $asset->beneficiaries()->sync($validBeneficiaryIds);
+    }
+
+    ActivityLog::record('CREATE_ASSET', "Menambahkan aset terenkripsi baru: {$asset->title} ({$asset->category})");
+
+    return back()->with('success', 'Aset dan berkas rahasia berhasil dienkripsi dan disimpan.');
+}
+
+public function update(Request $request, Asset $asset): RedirectResponse
+{
+    $user = $request->user();
+    abort_unless($asset->user_id === $user->id, 403);
+
+    $isLifetime = $request->boolean('is_lifetime');
+
+    $validated = $request->validate([
+        'account_password' => 'required|string',
+        'title' => 'required|string|max:150',
+        'category' => 'required|in:Finansial,Dokumen Rahasia,Kredensial Akun,Pesan Wasiat',
+        'secret_content' => 'nullable|string',
+        'attachment' => 'nullable|file|max:5120',
+        'beneficiary_ids' => 'nullable|array',
+        'beneficiary_ids.*' => 'exists:beneficiaries,id',
+        'start_date' => 'nullable|date',
+        'is_lifetime' => 'nullable|boolean',
+        'expires_at' => [$isLifetime ? 'nullable' : 'required', 'nullable', 'date', 'after_or_equal:start_date'],
+    ], [
+        'account_password.required' => 'Kata sandi akun wajib diisi untuk mengedit aset.',
+        'expires_at.required' => 'Tanggal kadaluarsa wajib diisi jika aset tidak disetel selamanya.',
+        'expires_at.after_or_equal' => 'Tanggal kadaluarsa tidak boleh mendahului tanggal mulai.',
+    ]);
+
+    if (!Hash::check($validated['account_password'], $user->password)) {
+        return back()->with('error', 'Gagal menyimpan perubahan: Kata sandi akun yang Anda masukkan salah!');
+    }
+
+    $path = $asset->attachment_path;
+    if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
+        if ($path) {
+            Storage::disk('supabase')->delete($path);
+        }
+        $path = $request->file('attachment')->store('', 'supabase');
+    }
+
+    $updateData = [
+        'title' => $validated['title'],
+        'category' => $validated['category'],
+        'attachment_path' => $path,
+        'start_date' => $validated['start_date'] ?? null,
+        'is_lifetime' => $isLifetime,
+        'expires_at' => $isLifetime ? null : ($validated['expires_at'] ?? null),
+    ];
+
+    if (!empty($validated['secret_content'])) {
+        $updateData['encrypted_payload'] = Crypt::encryptString($validated['secret_content']);
+    }
+
+    $asset->update($updateData);
+
+    if (isset($validated['beneficiary_ids'])) {
+        $validBeneficiaryIds = $user->beneficiaries()
+            ->whereIn('id', $validated['beneficiary_ids'])
+            ->pluck('id');
+        $asset->beneficiaries()->sync($validBeneficiaryIds);
+    }
+
+    ActivityLog::record('UPDATE_ASSET', "Memperbarui aset brankas: {$asset->title} ({$asset->category})");
+
+    return back()->with('success', 'Perubahan data aset berhasil disimpan.');
+}
+
+public function destroy(Request $request, Asset $asset): RedirectResponse
+{
+    $user = $request->user();
+    abort_unless($asset->user_id === $user->id, 403);
+
+    $validated = $request->validate([
+        'account_password' => 'required|string',
+    ], [
+        'account_password.required' => 'Kata sandi akun wajib diisi untuk menghapus aset.',
+    ]);
+
+    if (!Hash::check($validated['account_password'], $user->password)) {
+        return back()->with('error', 'Gagal menghapus aset: Kata sandi akun yang Anda masukkan salah!');
+    }
+
+    $title = $asset->title;
+
+    if ($asset->attachment_path) {
+        Storage::disk('supabase')->delete($asset->attachment_path);
+    }
+
+    $asset->beneficiaries()->detach();
+    $asset->delete();
+
+    ActivityLog::record('DELETE_ASSET', "Menghapus permanen aset dari brankas: {$title}");
+
+    return back()->with('success', 'Aset berhasil dihapus dari brankas.');
+}
 
     public function storeBeneficiary(Request $request): RedirectResponse
     {

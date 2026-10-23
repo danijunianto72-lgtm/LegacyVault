@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/assets', [AssetController::class, 'store'])->name('assets.store');
     Route::post('/assets/{asset}/decrypt', [AssetController::class, 'decrypt'])->name('assets.decrypt');
     Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
+    Route::put('/assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
     Route::post('/beneficiaries', [AssetController::class, 'storeBeneficiary'])->name('beneficiaries.store');
     Route::delete('/beneficiaries/{beneficiary}', [AssetController::class, 'destroyBeneficiary'])->name('beneficiaries.destroy');
     
