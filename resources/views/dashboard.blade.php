@@ -1134,7 +1134,6 @@
    
 </div>
 
-@endsection
  <!-- 1. MODAL POP-UP OTOMATIS: PERINGATAN ASET MAU KADALUARSA  -->
 @if($expiringCount > 0)
 <template x-teleport="body">
@@ -1272,3 +1271,4 @@
         </div>
     </div>
 </template>
+@endsection
