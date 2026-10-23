@@ -360,7 +360,7 @@
     </div>
 
     <!-- Navigasi Tab Utama -->
-    <div class="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+    <!-- <div class="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
         <button @click="tab = 'vault'" :class="tab === 'vault' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'" class="px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2">
             <i class="fa-solid fa-vault"></i>
             <span>Brankas Aset Digital ({{ $totalAssetsCount }})</span>
@@ -373,11 +373,9 @@
             <i class="fa-solid fa-clock-rotate-left"></i>
             <span>Log Aktivitas Keamanan</span>
         </button>
-    </div>
+    </div> -->
 
-    <!-- ========================================== -->
     <!-- TAB 1: BRANKAS ASET DIGITAL (SESUAI GAMBAR) -->
-    <!-- ========================================== -->
 <div x-show="activeTab === 'assets'" x-transition.opacity class="space-y-6">
         <!-- Header Brankas + Badge Kuota + Tombol Tambah Aset -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -589,9 +587,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
     <!-- TAB 2: DAFTAR AHLI WARIS                   -->
-    <!-- ========================================== -->
 <div x-show="activeTab === 'beneficiaries'" x-cloak x-transition.opacity class="space-y-6">
             <div class="lg:col-span-5">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
@@ -674,9 +670,7 @@
 </div>
     </div>
 
-    <!-- ========================================== -->
     <!-- TAB 3: LOG AKTIVITAS LENGKAP               -->
-    <!-- ========================================== -->
 <div x-show="activeTab === 'logs'" x-cloak x-transition.opacity class="space-y-6">
             <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
             <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
