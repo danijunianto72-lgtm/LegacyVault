@@ -859,6 +859,7 @@
     <!-- ========================================================= -->
     <!-- MODAL 2: SIMPAN ASET BARU KE BRANKAS                       -->
     <!-- ========================================================= -->
+     <template x-teleport="body">
     <div x-show="showAddAssetModal" 
          x-cloak 
          x-data="{ isLifetime: true, startDate: '' }"
@@ -976,7 +977,7 @@
             </form>
         </div>
     </div>
-
+</template>
     <!-- ========================================================= -->
     <!-- MODAL 3: BUKA LAMPIRAN TERPROTEKSI PASSWORD               -->
     <!-- ========================================================= -->
