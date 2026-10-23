@@ -211,12 +211,34 @@
                         <div x-show="!sidebarCollapsed" class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 whitespace-nowrap">
                             Panel Administrator
                         </div>
+
+                        <!-- 1. Verifikasi Pembayaran (Sudah Ada Sebelumnya) -->
                         <a href="{{ route('admin.payments.index') }}" 
                            :title="sidebarCollapsed ? 'Verifikasi Pembayaran' : ''"
                            :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3.5'"
-                           class="flex items-center gap-3 py-2.5 rounded-xl font-medium transition bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                           class="flex items-center gap-3 py-2.5 rounded-xl font-medium transition {{ request()->routeIs('admin.payments.*') ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-base shrink-0"></i>
                             <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Verifikasi Pembayaran</span>
+                        </a>
+
+                        <!-- TAMBAHKAN 2 MENU BARU INI TEPAT DI SINI: -->
+
+                        <!-- 2. Pemantauan & Perpanjangan Masa Berlaku Aset -->
+                        <a href="{{ route('admin.assets.index') }}" 
+                           :title="sidebarCollapsed ? 'Masa Berlaku Aset' : ''"
+                           :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3.5'"
+                           class="flex items-center gap-3 py-2.5 rounded-xl font-medium transition {{ request()->routeIs('admin.assets.*') ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <i class="fa-solid fa-hourglass-half w-5 text-center text-base shrink-0"></i>
+                            <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Masa Berlaku Aset</span>
+                        </a>
+
+                        <!-- 3. Log Audit Sistem -->
+                        <a href="{{ route('admin.logs.index') }}" 
+                           :title="sidebarCollapsed ? 'Log Audit Sistem' : ''"
+                           :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3.5'"
+                           class="flex items-center gap-3 py-2.5 rounded-xl font-medium transition {{ request()->routeIs('admin.logs.*') ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <i class="fa-solid fa-shield-halved w-5 text-center text-base shrink-0"></i>
+                            <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Log Audit Sistem</span>
                         </a>
                     @endif
 
@@ -452,38 +474,8 @@
                         </span>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-@if(auth()->user()->isAdmin())
-    <div x-show="!sidebarCollapsed" class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 whitespace-nowrap">
-        Panel Administrator
-    </div>
-
-    <!-- 1. Verifikasi Pembayaran -->
-    <a href="{{ route('admin.payments.index') }}" 
-       :title="sidebarCollapsed ? 'Verifikasi Pembayaran' : ''"
-       :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3.5'"
-       class="flex items-center gap-3 py-2.5 rounded-xl font-medium transition {{ request()->routeIs('admin.payments.*') ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-        <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-base shrink-0"></i>
-        <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Verifikasi Pembayaran</span>
-    </a>
-
-    <!-- 2. Pemantauan & Perpanjangan Aset -->
-    <a href="{{ route('admin.assets.index') }}" 
-       :title="sidebarCollapsed ? 'Masa Berlaku Aset' : ''"
-       :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3.5'"
-       class="flex items-center gap-3 py-2.5 rounded-xl font-medium transition {{ request()->routeIs('admin.assets.*') ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-        <i class="fa-solid fa-hourglass-half w-5 text-center text-base shrink-0"></i>
-        <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Masa Berlaku Aset</span>
-    </a>
-
-    <!-- 3. Log Audit Sistem -->
-    <a href="{{ route('admin.logs.index') }}" 
-       :title="sidebarCollapsed ? 'Log Audit Sistem' : ''"
-       :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3.5'"
-       class="flex items-center gap-3 py-2.5 rounded-xl font-medium transition {{ request()->routeIs('admin.logs.*') ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-        <i class="fa-solid fa-shield-halved w-5 text-center text-base shrink-0"></i>
-        <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Log Audit Sistem</span>
-    </a>
-@endif                            </span>
+                                {{ auth()->user()->isAdmin() ? 'Administrator' : auth()->user()->currentPlan()->name }}
+                            </span>
                             @if(!auth()->user()->isAdmin())
                                 <a href="{{ route('pricing') }}" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-500 text-[11px] font-bold hover:bg-emerald-500/25">Upgrade</a>
                             @endif
