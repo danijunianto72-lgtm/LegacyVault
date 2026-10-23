@@ -378,8 +378,7 @@
     <!-- ========================================== -->
     <!-- TAB 1: BRANKAS ASET DIGITAL (SESUAI GAMBAR) -->
     <!-- ========================================== -->
-    <div x-show="tab === 'vault'" class="space-y-6">
-
+<div x-show="activeTab === 'assets'" x-transition.opacity class="space-y-6">
         <!-- Header Brankas + Badge Kuota + Tombol Tambah Aset -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -593,8 +592,8 @@
     <!-- ========================================== -->
     <!-- TAB 2: DAFTAR AHLI WARIS                   -->
     <!-- ========================================== -->
-    <div x-show="tab === 'beneficiaries'" x-cloak class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-5">
+<div x-show="activeTab === 'beneficiaries'" x-cloak x-transition.opacity class="space-y-6">
+            <div class="lg:col-span-5">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
                 <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-user-plus text-emerald-500"></i>
@@ -678,8 +677,8 @@
     <!-- ========================================== -->
     <!-- TAB 3: LOG AKTIVITAS LENGKAP               -->
     <!-- ========================================== -->
-    <div x-show="tab === 'logs'" x-cloak class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-        <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+<div x-show="activeTab === 'logs'" x-cloak x-transition.opacity class="space-y-6">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
             <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
             <span>Riwayat Aktivitas & Audit Keamanan Akun</span>
         </h2>
