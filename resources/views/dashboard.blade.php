@@ -592,9 +592,6 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         </div>
                     </div>
 
-<!-- ======================================================== -->
-                    <!-- KONTEN RAHASIA / BANNER KUNCI KADALUARSA                 -->
-                    <!-- ======================================================== -->
                     @if($isLocked)
                         <!-- 1. TAMPILAN JIKA ASET TERKUNCI (KADALUARSA) -->
                         <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -676,6 +673,14 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                             @endif
                         @endif
                     </div>
+                    </div>
+                           @empty
+                <div class="p-12 rounded-2xl bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 text-center text-slate-500 text-sm">
+                    <i class="fa-solid fa-box-open text-3xl text-slate-400 mb-2 block"></i>
+                    Tidak ada aset ditemukan. Klik tombol <strong>"+ Tambah Aset Baru"</strong> di kanan atas untuk menyimpan aset rahasia.
+                </div>
+            @endforelse
+        </div>
 
         <!-- Ringkasan Log Aktivitas Terakhir -->
         <div class="mt-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
