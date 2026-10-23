@@ -117,51 +117,12 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-    </div>
-    <!-- Log Aktivitas Seluruh Sistem (Panel Audit Admin) -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-        <h2 class="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-shield-halved text-amber-500"></i>
-            <span>Log Aktivitas Pengguna & Audit Sistem</span>
-        </h2>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                        <th class="py-2.5">Waktu</th>
-                        <th class="py-2.5">Pengguna</th>
-                        <th class="py-2.5">Kode Aksi</th>
-                        <th class="py-2.5">Deskripsi Aktivitas</th>
-                        <th class="py-2.5">IP Address</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
-                    @forelse($activityLogs as $log)
-                        <tr>
-                            <td class="py-3 text-slate-500 dark:text-slate-400">{{ $log->created_at->format('d M Y H:i:s') }}</td>
-                            <td class="py-3 font-semibold text-slate-900 dark:text-white">
-                                {{ $log->user->name ?? 'User Terhapus' }}
-                            </td>
-                            <td class="py-3">
-                                <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono text-[10px] font-bold">
-                                    {{ $log->action }}
-                                </span>
-                            </td>
-                            <td class="py-3 text-slate-700 dark:text-slate-300">{{ $log->description }}</td>
-                            <td class="py-3 font-mono text-slate-400">{{ $log->ip_address }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="py-4 text-center text-slate-500">Belum ada aktivitas tercatat di sistem.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+             <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
     {{ $processedPayments->links() }}
 </div>
         </div>
     </div>
+    
+   
 </div>
 @endsection 
