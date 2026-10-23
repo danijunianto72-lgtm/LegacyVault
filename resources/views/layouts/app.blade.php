@@ -269,6 +269,12 @@
                     <span class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ auth()->user()->email }}</span>
                 </div>
 
+                  <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-400 flex items-center gap-2">
+            <i class="fa-brands fa-whatsapp text-emerald-500"></i>No WhatsApp
+                    </span>
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ auth()->user()->phone ?? 'Belum diatur' }}</span>
+                    </div>
                 <!-- Jenis Kelamin -->
                 <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                     <span class="text-xs font-semibold text-slate-400 flex items-center gap-2">
