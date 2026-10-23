@@ -592,113 +592,90 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         </div>
                     </div>
 
+<!-- ======================================================== -->
+                    <!-- KONTEN RAHASIA / BANNER KUNCI KADALUARSA                 -->
+                    <!-- ======================================================== -->
+                    @if($isLocked)
+                        <!-- 1. TAMPILAN JIKA ASET TERKUNCI (KADALUARSA) -->
+                        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="text-xs font-bold text-rose-500 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span>ASET TERKUNCI KARENA KADALUARSA</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                    Aset tidak dapat didekripsi. Ajukan permohonan ke admin agar kunci dibuka dan Anda dapat memperbarui masa berlakunya.
+                                </p>
+                            </div>
 
-@if($isLocked)
-    {{-- 1. TAMPILAN JIKA ASET TERKUNCI KARENA KADALUARSA --}}
-    <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div class="space-y-1">
-            <div class="text-xs font-bold text-rose-500 flex items-center gap-1.5">
-                <i class="fa-solid fa-lock"></i>
-                <span>ASET TERKUNCI KARENA KADALUARSA</span>
-            </div>
+                            @if($asset->extension_status === 'pending')
+                                <span class="px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-500 font-bold text-xs shrink-0 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> Menunggu Verifikasi Admin
+                                </span>
+                            @else
+                                <form action="{{ route('assets.requestExtension', $asset) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition shrink-0 flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
+                                        <i class="fa-solid fa-key"></i> Ajukan Perpanjangan ke Admin
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @else
+                        <!-- 2. TAMPILAN NORMAL (DAPAT DIDEKRIPSI) -->
+                        <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/90 flex items-center justify-between gap-4">
+                            <div class="font-mono text-xs overflow-x-auto">
+                                <template x-if="!unlockedSecrets[{{ $asset->id }}]">
+                                    <div class="space-y-1 select-none text-slate-500 dark:text-slate-400 tracking-widest">
+                                        <div>••••••••••••••••••••</div>
+                                        <div>•••••••••••••••••••••••••</div>
+                                    </div>
+                                </template>
+                                <template x-if="unlockedSecrets[{{ $asset->id }}]">
+                                    <div class="text-emerald-700 dark:text-emerald-300 whitespace-pre-line leading-relaxed" x-text="unlockedSecrets[{{ $asset->id }}]"></div>
+                                </template>
+                            </div>
 
-            <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                Aset tidak dapat didekripsi. Ajukan permohonan ke admin agar kunci dibuka dan Anda dapat memperbarui masa berlakunya.
-            </p>
-        </div>
+                            <!-- Tombol Mata Pembuka Dekripsi -->
+                            <button type="button" 
+                                    @click="openDecryptModal({{ $asset->id }}, '{{ addslashes($asset->title) }}')"
+                                    class="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-500 transition shrink-0"
+                                    :title="unlockedSecrets[{{ $asset->id }}] ? 'Sembunyikan Kembali' : 'Verifikasi Password untuk Melihat Isi'">
+                                <i class="fa-solid" :class="unlockedSecrets[{{ $asset->id }}] ? 'fa-eye-slash text-emerald-500' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+                    @endif
+                    <!-- ======================================================== -->
 
-        @if($asset->extension_status === 'pending')
-            <span class="px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-500 font-bold text-xs shrink-0 flex items-center gap-1.5">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                Menunggu Verifikasi Admin
-            </span>
-        @else
-            <form action="{{ route('assets.requestExtension', $asset) }}" method="POST">
-                @csrf
+                    <!-- Baris Bawah: Info Ahli Waris & Lampiran -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+                        <div class="flex flex-wrap items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                            <i class="fa-solid fa-user-check text-emerald-500 mr-1"></i>
+                            <span>Ahli Waris:</span>
+                            @forelse($asset->beneficiaries as $ben)
+                                <strong class="text-slate-800 dark:text-slate-200">{{ $ben->name }}{{ !$loop->last ? ',' : '' }}</strong>
+                            @empty
+                                <span class="italic text-slate-400">Belum ditugaskan</span>
+                            @endforelse
+                        </div>
 
-                <button type="submit"
-                        class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition shrink-0 flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
-                    <i class="fa-solid fa-key"></i>
-                    Ajukan Perpanjangan ke Admin
-                </button>
-            </form>
-        @endif
-    </div>
-
-@else
-    {{-- 2. TAMPILAN NORMAL: ISI RAHASIA DAPAT DIDEKRIPSI --}}
-    <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/90 flex items-center justify-between gap-4">
-
-        <div class="font-mono text-xs overflow-x-auto min-w-0 flex-1">
-            <template x-if="!unlockedSecrets[{{ $asset->id }}]">
-                <div class="space-y-1 select-none text-slate-500 dark:text-slate-400 tracking-widest">
-                    <div>••••••••••••••••••••</div>
-                    <div>•••••••••••••••••••••••••</div>
-                </div>
-            </template>
-
-            <template x-if="unlockedSecrets[{{ $asset->id }}]">
-                <div class="text-emerald-700 dark:text-emerald-300 whitespace-pre-line leading-relaxed"
-                     x-text="unlockedSecrets[{{ $asset->id }}]">
-                </div>
-            </template>
-        </div>
-
-        {{-- Tombol untuk membuka atau menyembunyikan isi rahasia --}}
-        <button type="button"
-                @click="openDecryptModal({{ $asset->id }}, {{ Js::from($asset->title) }})"
-                class="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-500 transition shrink-0"
-                :title="unlockedSecrets[{{ $asset->id }}] ? 'Sembunyikan Kembali' : 'Verifikasi Password untuk Melihat Isi'">
-
-            <i class="fa-solid"
-               :class="unlockedSecrets[{{ $asset->id }}] ? 'fa-eye-slash text-emerald-500' : 'fa-eye'">
-            </i>
-        </button>
-    </div>
-@endif
-
-{{-- 3. BARIS BAWAH: INFO AHLI WARIS DAN LAMPIRAN --}}
-<div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
-
-    {{-- Informasi ahli waris --}}
-    <div class="flex flex-wrap items-center gap-1.5 text-slate-500 dark:text-slate-400">
-        <i class="fa-solid fa-user-check text-emerald-500 mr-1"></i>
-        <span>Ahli Waris:</span>
-
-        @forelse($asset->beneficiaries as $ben)
-            <strong class="text-slate-800 dark:text-slate-200">
-                {{ $ben->name }}{{ !$loop->last ? ',' : '' }}
-            </strong>
-        @empty
-            <span class="italic text-slate-400">
-                Belum ditugaskan
-            </span>
-        @endforelse
-    </div>
-
-    {{-- Lampiran --}}
-    @if($asset->attachment_path)
-        @if($isLocked)
-            {{-- Lampiran tidak dapat dibuka jika aset terkunci --}}
-            <span class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 flex items-center gap-1.5 font-medium cursor-not-allowed"
-                  title="Aset kadaluarsa, lampiran terkunci">
-
-                <i class="fa-solid fa-lock text-xs text-rose-500"></i>
-                <span>{{ basename($asset->attachment_path) }}</span>
-            </span>
-        @else
-            {{-- Lampiran dapat dibuka melalui modal verifikasi --}}
-            <button type="button"
-                    @click="openAttachModal({{ $asset->id }}, {{ Js::from($asset->title) }})"
-                    class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/50 transition flex items-center gap-1.5 font-medium">
-
-                <i class="fa-solid fa-lock text-xs"></i>
-                <span>{{ basename($asset->attachment_path) }}</span>
-            </button>
-        @endif
-    @endif
-
-</div>
+                        @if($asset->attachment_path)
+                            @if($isLocked)
+                                <!-- Lampiran ikut terkunci jika aset kadaluarsa -->
+                                <span class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 flex items-center gap-1.5 font-medium cursor-not-allowed" title="Aset kadaluarsa, lampiran terkunci">
+                                    <i class="fa-solid fa-lock text-xs text-rose-500"></i>
+                                    <span>{{ basename($asset->attachment_path) }}</span>
+                                </span>
+                            @else
+                                <button type="button" 
+                                        @click="openAttachModal({{ $asset->id }}, '{{ addslashes($asset->title) }}')"
+                                        class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/50 transition flex items-center gap-1.5 font-medium">
+                                    <i class="fa-solid fa-lock text-xs"></i>
+                                    <span>{{ basename($asset->attachment_path) }}</span>
+                                </button>
+                            @endif
+                        @endif
+                    </div>
 
         <!-- Ringkasan Log Aktivitas Terakhir -->
         <div class="mt-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
