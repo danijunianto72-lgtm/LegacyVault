@@ -18,7 +18,7 @@
         editModalOpen: false,
         deleteModalOpen: false,
         showAddAssetModal: false,
-        noBeneficiaryModalOpen,
+        noBeneficiaryModalOpen: false,
         selectedAsset: {
             id: null,
             title: '',
