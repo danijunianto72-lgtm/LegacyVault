@@ -112,24 +112,26 @@
                     @auth
                         <div class="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
 
-                        <!-- Tombol Profil Pengguna -->
-                        <button type="button" 
-                                @click="profileModalOpen = true"
-                                title="Klik untuk melihat info profil lengkap"
-                                class="text-right p-1.5 px-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition group cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                      <button type="button" 
+                            @click="profileModalOpen = true"
+                            class="text-right p-1.5 px-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition group cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700 flex items-center gap-3">
+                        @if(auth()->user()->avatar_url)
+                            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full object-cover border border-emerald-500/40">
+                        @else
+                            <div class="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 text-sm">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                        @endif
+                        <div>
                             <div class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-end gap-1.5 group-hover:text-emerald-500 transition">
-                                <i class="fa-solid {{ auth()->user()->isAdmin() ? 'fa-user-tie text-amber-500' : 'fa-circle-user text-emerald-500' }}"></i>
                                 <span>{{ auth()->user()->name }}</span>
                                 <i class="fa-solid fa-circle-info text-[10px] text-slate-400 group-hover:text-emerald-500"></i>
                             </div>
                             <div class="text-[11px] text-slate-500 dark:text-slate-400">
-                                @if(auth()->user()->isAdmin())
-                                    Administrator Verifikasi
-                                @else
-                                    Tier: <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ auth()->user()->currentPlan()->name }}</span>
-                                @endif
+                                Tier: <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ auth()->user()->currentPlan()->name }}</span>
                             </div>
-                        </button>
+                        </div>
+                    </button>
 
                         <form action="{{ route('logout') }}" method="POST" class="ml-2">
                             @csrf
@@ -230,99 +232,90 @@
         <!-- MODAL DETAIL INFO PROFIL -->
        <!-- MODAL DETAIL INFO PROFIL (DITELEPORT KE BODY AGAR PRESISI DI TENGAH) -->
         @auth
-            <template x-teleport="body">
-                <div x-show="profileModalOpen" 
-                     x-cloak 
-                     class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-                    <div @click.away="profileModalOpen = false" 
-                         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-6">
-                        
-                        <!-- Header Modal -->
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                                    <i class="fa-solid fa-id-badge"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Informasi Profil Akun</h3>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Data akun terdaftar di sistem LegacyVault</p>
-                                </div>
-                            </div>
-                            <button @click="profileModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition p-1">
-                                <i class="fa-solid fa-xmark text-lg"></i>
-                            </button>
+       <template x-teleport="body">
+    <div x-show="profileModalOpen" 
+         x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div @click.away="profileModalOpen = false" 
+             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            
+            <!-- Header Modal & Avatar Besar -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    @if(auth()->user()->avatar_url)
+                        <img src="{{ auth()->user()->avatar_url }}" class="w-12 h-12 rounded-2xl object-cover border-2 border-emerald-500 shadow-sm">
+                    @else
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 text-xl font-bold">
+                            {{ substr(auth()->user()->name, 0, 1) }}
                         </div>
-
-                        <!-- Isi Data Profil (Per Baris) -->
-                        <div class="space-y-3">
-                            <!-- Nama Lengkap -->
-                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                <div class="space-y-0.5">
-                                    <div class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                                        <i class="fa-regular fa-user text-emerald-500"></i>
-                                        <span>NAMA LENGKAP</span>
-                                    </div>
-                                    <div class="text-sm font-bold text-slate-900 dark:text-white">{{ auth()->user()->name }}</div>
-                                </div>
-                            </div>
-
-                            <!-- Email -->
-                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                <div class="space-y-0.5">
-                                    <div class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                                        <i class="fa-regular fa-envelope text-emerald-500"></i>
-                                        <span>ALAMAT EMAIL</span>
-                                    </div>
-                                    <div class="text-sm font-bold text-slate-900 dark:text-white">{{ auth()->user()->email }}</div>
-                                </div>
-                            </div>
-
-                            <!-- Nomor WhatsApp -->
-                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                <div class="space-y-0.5">
-                                    <div class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                                        <i class="fa-brands fa-whatsapp text-emerald-500"></i>
-                                        <span>NOMOR WHATSAPP</span>
-                                    </div>
-                                    <div class="text-sm font-bold text-slate-900 dark:text-white">{{ auth()->user()->phone ?? 'Belum diatur' }}</div>
-                                </div>
-                            </div>
-
-                            <!-- Status Paket / Role -->
-                            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                <div class="space-y-0.5">
-                                    <div class="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-gem text-emerald-500"></i>
-                                        <span>TIER / PAKET SAAT INI</span>
-                                    </div>
-                                    <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                                        @if(auth()->user()->isAdmin())
-                                            <span>Administrator Verifikator</span>
-                                        @else
-                                            <span>{{ auth()->user()->currentPlan()->name }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-                                @if(!auth()->user()->isAdmin())
-                                    <a href="{{ route('pricing') }}" @click="profileModalOpen = false" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold transition">
-                                        Upgrade
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Footer Modal -->
-                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-end">
-                            <button type="button" 
-                                    @click="profileModalOpen = false" 
-                                    class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition">
-                                Tutup
-                            </button>
-                        </div>
-
+                    @endif
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">{{ auth()->user()->name }}</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">ID Anggota: #{{ str_pad(auth()->user()->id, 5, '0', STR_PAD_LEFT) }}</p>
                     </div>
                 </div>
-            </template>
+                <button @click="profileModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- List Data Lengkap Akun -->
+            <div class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+                <!-- Email -->
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-400 flex items-center gap-2">
+                        <i class="fa-regular fa-envelope text-emerald-500"></i> Email
+                    </span>
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ auth()->user()->email }}</span>
+                </div>
+
+                <!-- Jenis Kelamin -->
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-venus-mars text-emerald-500"></i> Jenis Kelamin
+                    </span>
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        {{ auth()->user()->gender === 'male' ? 'Laki-laki' : (auth()->user()->gender === 'female' ? 'Perempuan' : 'Belum diatur') }}
+                    </span>
+                </div>
+
+                <!-- Tanggal Lahir & Usia -->
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-400 flex items-center gap-2">
+                        <i class="fa-regular fa-calendar text-emerald-500"></i> Tanggal Lahir
+                    </span>
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        @if(auth()->user()->birth_date)
+                            {{ auth()->user()->birth_date->translatedFormat('d F Y') }} ({{ auth()->user()->age }} thn)
+                        @else
+                            Belum diatur
+                        @endif
+                    </span>
+                </div>
+
+                <!-- Paket Langganan -->
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-gem text-emerald-500"></i> Status Paket
+                    </span>
+                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        {{ auth()->user()->currentPlan()->name }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                <button type="button" 
+                        @click="profileModalOpen = false" 
+                        class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition">
+                    Tutup
+                </button>
+            </div>
+
+        </div>
+    </div>
+</template>
         @endauth
     </header>
 @endunless
