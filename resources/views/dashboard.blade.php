@@ -1259,7 +1259,15 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                 <h3 class="text-base font-extrabold text-rose-500 mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Konfirmasi Hapus Aset
                 </h3>
-                <div class="space-y-1.5 text-left" x-data="{ showPass: false }">
+                <p class="text-xs text-slate-400 mb-4">
+                    Anda akan menghapus aset <strong class="text-white" x-text="selectedAsset.title"></strong>. Masukkan kata sandi akun Anda untuk melanjutkan.
+                </p>
+
+                <form :action="'/assets/' + selectedAsset.id" method="POST" class="space-y-4">
+                    @csrf
+                    @method('DELETE')
+
+                   <div class="space-y-1.5 text-left" x-data="{ showPass: false }">
     <label class="block text-xs font-bold text-rose-500 dark:text-rose-400">
         <i class="fa-solid fa-key mr-1"></i> Masukkan Password untuk Konfirmasi Hapus *
     </label>
@@ -1276,16 +1284,6 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </button>
     </div>
 </div>
-
-                <form :action="'/assets/' + selectedAsset.id" method="POST" class="space-y-4">
-                    @csrf
-                    @method('DELETE')
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">Kata Sandi Akun *</label>
-                        <input type="password" name="account_password" required placeholder="Masukkan password akun Anda..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-rose-500/30 text-xs text-slate-900 dark:text-white">
-                    </div>
-
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Batal</button>
                         <button type="submit" class="px-5 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-extrabold">Ya, Hapus Permanen</button>
