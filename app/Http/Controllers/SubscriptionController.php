@@ -26,7 +26,7 @@ class SubscriptionController extends Controller
     {
         $validated = $request->validate([
             'plan_id' => 'required|exists:plans,id',
-            'bank_destination' => 'nullable|in:BCA,BRI',
+            'bank_destination' => 'nullable|string',
             'bank_sender_name' => 'required|string|max:150',
             'proof_image' => 'required|image|mimes:jpg,jpeg,png|max:4096', // Maks 4MB
         ]);
@@ -40,14 +40,19 @@ class SubscriptionController extends Controller
             return back()->with('error', 'Anda masih memiliki transaksi yang sedang menunggu verifikasi Admin.');
         }
 
-        // Format info Bank Tujuan + Nama Pengirim (Contoh: "[BRI] Budi Santoso")
-        $bankDest = $validated['bank_destination'] ?? 'BCA';
-        $senderName = trim($validated['bank_sender_name']);
-        if (!str_contains(strtoupper($senderName), $bankDest)) {
-            $senderInfo = "[{$bankDest}] {$senderName}";
+        // 1. Deteksi Bank Tujuan secara kuat (Cek dari input hidden maupun teks pengirim)
+        $rawBank = strtoupper(trim((string) $request->input('bank_destination', '')));
+        $senderInput = trim($validated['bank_sender_name']);
+
+        if ($rawBank === 'BRI' || stripos($senderInput, 'BRI') !== false) {
+            $bankDest = 'BRI';
         } else {
-            $senderInfo = $senderName;
+            $bankDest = 'BCA';
         }
+
+        // 2. Bersihkan tag lama jika user menulis tag ganda, lalu pasang prefix [BRI] atau [BCA]
+        $cleanSenderName = preg_replace('/^\[(BCA|BRI)\]\s*/i', '', $senderInput);
+        $senderInfo = "[{$bankDest}] {$cleanSenderName}";
 
         // SIMPAN KE SUPABASE
         $path = $request->file('proof_image')->store('payment_proofs', 'supabase_proofs');
@@ -59,8 +64,7 @@ class SubscriptionController extends Controller
             'status' => 'pending',
         ];
 
-        // Cek otomatis: jika tabel payments punya kolom bank_sender_name, simpan di sana.
-        // Jika tidak ada kolomnya, simpan di admin_note agar tetap terbaca di Cashflow & Admin.
+        // Simpan ke kolom bank_sender_name jika ada, atau ke admin_note
         if (Schema::hasColumn('payments', 'bank_sender_name')) {
             $paymentData['bank_sender_name'] = $senderInfo;
         } else {
@@ -71,7 +75,7 @@ class SubscriptionController extends Controller
 
         ActivityLog::record(
             'CHECKOUT_PLAN',
-            "Mengunggah bukti pembayaran paket {$plan->name} melalui {$bankDest} (Pengirim: {$senderName})"
+            "Mengunggah bukti pembayaran paket {$plan->name} melalui {$bankDest} (Pengirim: {$cleanSenderName})"
         );
 
         return back()->with('success', "Bukti transfer ke Bank {$bankDest} berhasil dikirim! Admin akan memverifikasi maksimal 1x24 jam.");

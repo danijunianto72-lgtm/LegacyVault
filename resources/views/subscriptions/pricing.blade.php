@@ -199,33 +199,36 @@
             </div>
 
             <form action="{{ route('pricing.checkout') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-                @csrf
-                <input type="hidden" name="plan_id" :value="selectedPlanId">
-                <input type="hidden" name="bank_destination" :value="selectedBank">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                        <i class="fa-solid fa-user-check mr-1 text-emerald-500"></i> Nama Pengirim & Bank Asal
-                    </label>
-                    <input type="text" name="bank_sender_name" required :placeholder="'Contoh: Budi Santoso (Transfer ke ' + selectedBank + ')'"
-                           class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                </div>
+    @csrf
+    <input type="hidden" name="plan_id" :value="selectedPlanId">
+    
+    <!-- GANTI :value MENJADI x-model -->
+    <input type="hidden" name="bank_destination" x-model="selectedBank">
 
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                        <i class="fa-solid fa-receipt mr-1 text-emerald-500"></i> Upload Foto / Struk Bukti Transfer (JPG/PNG)
-                    </label>
-                    <input type="file" name="proof_image" required accept="image/jpeg,image/png"
-                           class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-emerald-500/15 file:text-emerald-600 dark:file:text-emerald-400 hover:file:bg-emerald-500/25 cursor-pointer">
-                </div>
+    <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+            <i class="fa-solid fa-user-check mr-1 text-emerald-500"></i> Nama Pengirim & Bank Asal
+        </label>
+        <input type="text" name="bank_sender_name" required :placeholder="'Contoh: Budi Santoso (Transfer ke ' + selectedBank + ')'"
+               class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+    </div>
 
-                <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                    <button type="button" @click="selectedPlanId = null" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">Batal</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        <span>Kirim Bukti Pembayaran</span>
-                    </button>
-                </div>
-            </form>
+    <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+            <i class="fa-solid fa-receipt mr-1 text-emerald-500"></i> Upload Foto / Struk Bukti Transfer (JPG/PNG)
+        </label>
+        <input type="file" name="proof_image" required accept="image/jpeg,image/png"
+               class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-emerald-500/15 file:text-emerald-600 dark:file:text-emerald-400 hover:file:bg-emerald-500/25 cursor-pointer">
+    </div>
+
+    <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <button type="button" @click="selectedPlanId = null" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">Batal</button>
+        <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Kirim Bukti Pembayaran</span>
+        </button>
+    </div>
+</form>
         </div>
     </div>
 
