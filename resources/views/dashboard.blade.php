@@ -1197,26 +1197,39 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         <input type="text" name="title" x-model="selectedAsset.title" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white">
                     </div>
 
-                    <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold text-slate-400">Masa Berlaku</span>
-                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="is_lifetime" value="1" x-model="selectedAsset.is_lifetime" class="rounded border-slate-700 text-emerald-500">
-                                <span class="text-xs font-bold text-emerald-500">Berlaku Selamanya (&infin;)</span>
-                            </label>
-                        </div>
+                <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+    <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-slate-400">Masa Berlaku</span>
+        <label class="inline-flex items-center gap-2 cursor-pointer">
+            <!-- Hidden input fallback saat uncheck -->
+            <input type="hidden" name="is_lifetime" value="0">
+            <input type="checkbox" 
+                   name="is_lifetime" 
+                   value="1" 
+                   x-model="selectedAsset.is_lifetime" 
+                   class="rounded border-slate-700 text-emerald-500">
+            <span class="text-xs font-bold text-emerald-500">Berlaku Selamanya (&infin;)</span>
+        </label>
+    </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[11px] text-slate-400 mb-1">Tanggal Mulai</label>
-                                <input type="date" name="start_date" x-model="selectedAsset.start_date" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
-                            </div>
-                            <div x-show="!selectedAsset.is_lifetime">
-                                <label class="block text-[11px] text-amber-400 font-semibold mb-1">Tanggal Kadaluarsa *</label>
-                                <input type="date" name="expires_at" x-model="selectedAsset.expires_at" :required="!selectedAsset.is_lifetime" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-amber-500/40 text-xs text-slate-900 dark:text-white">
-                            </div>
-                        </div>
-                    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Tanggal Mulai</label>
+            <input type="date" 
+                   name="start_date" 
+                   x-model="selectedAsset.start_date" 
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
+        </div>
+        <div x-show="!selectedAsset.is_lifetime">
+            <label class="block text-[11px] text-amber-400 font-semibold mb-1">Tanggal Kadaluarsa *</label>
+            <input type="date" 
+                   name="expires_at" 
+                   x-model="selectedAsset.expires_at" 
+                   :required="!selectedAsset.is_lifetime" 
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-amber-500/40 text-xs text-slate-900 dark:text-white">
+        </div>
+    </div>
+</div>
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-400 mb-1">Perbarui Lampiran Dokumen/Foto (Opsional)</label>

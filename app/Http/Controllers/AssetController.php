@@ -180,7 +180,8 @@ public function update(Request $request, Asset $asset): RedirectResponse
         'attachment_path' => $path,
         'start_date' => $validated['start_date'] ?? null,
         'is_lifetime' => $isLifetime,
-'extension_status' => 'none',
+        'expires_at' => $isLifetime ? null : ($validated['expires_at'] ?? null), // <-- TAMBAHKAN BARIS INI
+        'extension_status' => 'none',
     ];
 
     if (!empty($validated['secret_content'])) {
