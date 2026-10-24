@@ -43,10 +43,11 @@ class AssetController extends Controller
         $currentPlan = $user->currentPlan();
         $subscription = $user->subscriptions()->where('status', 'active')->latest()->first();
         // Ambil 15 Log Aktivitas Terakhir Milik User Ini
-        $activityLogs = ActivityLog::where('user_id', $user->id)
-            ->latest()
-            ->take(15)
-            ->get();
+        // Ambil query log per 10 item
+$activityLogs = $user->activityLogs()
+    ->latest()
+    ->paginate(10, ['*'], 'log_page')
+    ->withQueryString();
 // Di dalam method index(), sebelum return view:
     if (!$user->next_check_in_deadline) {
         $user->confirmCheckIn();

@@ -794,43 +794,54 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </div>
 
-    <!-- TAB 3: LOG AKTIVITAS KEAMANAN -->
-        <div x-show="activeTab === 'logs'" x-cloak x-transition.opacity class="space-y-6">
-            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
-                <span>Riwayat Aktivitas & Audit Keamanan Akun</span>
-            </h2>
-            <div class="overflow-x-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
-                <table class="w-full text-left text-xs">
-                    <thead class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                        <tr>
-                            <th class="py-2.5">Waktu</th>
-                            <th class="py-2.5">Aksi</th>
-                            <th class="py-2.5">Keterangan Aktivitas</th>
-                            <th class="py-2.5">Alamat IP</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
-                        @forelse($activityLogs as $log)
-                            <tr>
-                                <td class="py-3 text-slate-500 dark:text-slate-400">{{ $log->created_at->format('d M Y H:i:s') }}</td>
-                                <td class="py-3">
-                                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[10px] font-bold">
-                                        {{ $log->action }}
-                                    </span>
-                                </td>
-                                <td class="py-3 text-slate-800 dark:text-slate-200">{{ $log->description }}</td>
-                                <td class="py-3 font-mono text-slate-400">{{ $log->ip_address }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="py-4 text-center text-slate-500">Belum ada catatan aktivitas.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+  <div x-show="activeTab === 'logs'" x-cloak x-transition.opacity class="space-y-6">
+    <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
+        <span>Riwayat Aktivitas & Audit Keamanan Akun</span>
+    </h2>
+    <div class="overflow-x-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+        <table class="w-full text-left text-xs">
+            <thead class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                    <th class="py-2.5">Waktu</th>
+                    <th class="py-2.5">Aksi</th>
+                    <th class="py-2.5">Keterangan Aktivitas</th>
+                    <th class="py-2.5">Alamat IP</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
+                @forelse($activityLogs as $log)
+                    <tr>
+                        <td class="py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ $log->created_at->format('d M Y H:i:s') }}</td>
+                        <td class="py-3">
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[10px] font-bold">
+                                {{ $log->action }}
+                            </span>
+                        </td>
+                        <td class="py-3 text-slate-800 dark:text-slate-200">{{ $log->description }}</td>
+                        <td class="py-3 font-mono text-slate-400">{{ $log->ip_address }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="py-4 text-center text-slate-500">Belum ada catatan aktivitas.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        <!-- Link Navigasi Pagination 10 Item -->
+        @if($activityLogs->hasPages())
+            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <div>
+                    Menampilkan <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $activityLogs->firstItem() }}</span> sampai <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $activityLogs->lastItem() }}</span> dari <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $activityLogs->total() }}</span> log
+                </div>
+                <div>
+                    {{ $activityLogs->appends(['tab' => 'logs'])->links() }}
+                </div>
             </div>
-        </div>
+        @endif
+    </div>
+</div>
 
     <!-- ========================================================= -->
     <!-- MODAL 1: VERIFIKASI DEKRIPSI TEKS RAHASIA                  -->
