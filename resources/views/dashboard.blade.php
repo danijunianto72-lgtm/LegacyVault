@@ -569,27 +569,31 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                             </div>
                         </div>
 
-                        <!-- Tombol Edit & Hapus -->
-                        <div class="flex items-center gap-1.5">
-                            <button type="button"
-                                    @click="openEditModal({
-                                        id: {{ $asset->id }},
-                                        title: '{{ addslashes($asset->title) }}',
-                                        start_date: '{{ $asset->start_date ? $asset->start_date->format('Y-m-d') : '' }}',
-                                        expires_at: '{{ $asset->expires_at ? $asset->expires_at->format('Y-m-d') : '' }}',
-                                        is_lifetime: {{ $asset->is_lifetime ? 'true' : 'false' }},
-                                        category: '{{ $asset->category }}',
-                                    })"
-                                    class="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition" title="Edit Aset">
-                                <i class="fa-solid fa-pen-to-square text-sm"></i>
-                            </button>
+                       <!-- Tombol Edit & Hapus -->
+<div class="flex items-center gap-1.5">
+    <!-- Tombol Edit HANYA tampil jika aset TIDAK terkunci kadaluarsa -->
+    @if(!$isLocked)
+        <button type="button"
+                @click="openEditModal({
+                    id: {{ $asset->id }},
+                    title: '{{ addslashes($asset->title) }}',
+                    category: '{{ $asset->category }}',
+                    start_date: '{{ $asset->start_date ? $asset->start_date->format('Y-m-d') : '' }}',
+                    expires_at: '{{ $asset->expires_at ? $asset->expires_at->format('Y-m-d') : '' }}',
+                    is_lifetime: {{ $asset->is_lifetime ? 'true' : 'false' }}
+                })"
+                class="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition" title="Edit Aset">
+            <i class="fa-solid fa-pen-to-square text-sm"></i>
+        </button>
+    @endif
 
-                            <button type="button"
-                                    @click="openDeleteModal({ id: {{ $asset->id }}, title: '{{ addslashes($asset->title) }}' })"
-                                    class="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition" title="Hapus Aset">
-                                <i class="fa-regular fa-trash-can text-sm"></i>
-                            </button>
-                        </div>
+    <!-- Tombol Hapus tetap ada agar user tetap bisa membuang aset kadaluarsa -->
+    <button type="button"
+            @click="openDeleteModal({ id: {{ $asset->id }}, title: '{{ addslashes($asset->title) }}' })"
+            class="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition" title="Hapus Aset">
+        <i class="fa-regular fa-trash-can text-sm"></i>
+    </button>
+</div>
                     </div>
 
                     @if($isLocked)
