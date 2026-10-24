@@ -204,137 +204,137 @@
     </div>
 
     <!-- Tabel Rincian Data Cashflow -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 uppercase text-[11px]">
-                    <tr>
-                        <th class="py-3 px-3">Tanggal Bayar</th>
-                        <th class="py-3 px-3">Pelanggan</th>
-                        <th class="py-3 px-3">Paket & Nominal</th>
-                        <th class="py-3 px-3">Bank & Pengirim</th>
-                        <th class="py-3 px-3">Status & Masa Aktif Sampai</th>
-                        <th class="py-3 px-3">Keterangan / Bukti</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
-                    @forelse($cashflows as $pay)
-                        @php
-                            $u = $pay->user;
-                            $activeSub = $u ? $u->activeSubscription : null;
-                            $latestSub = $u ? $u->subscription : null;
-                            $subToUse = $activeSub ?: $latestSub;
+ <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full min-w-max text-left text-xs">
+            <thead class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 uppercase text-[11px] whitespace-nowrap">
+                <tr>
+                    <th class="py-3 px-3">Tanggal Bayar</th>
+                    <th class="py-3 px-3">Pelanggan</th>
+                    <th class="py-3 px-3">Paket & Nominal</th>
+                    <th class="py-3 px-3">Bank & Pengirim</th>
+                    <th class="py-3 px-3">Status & Masa Aktif Sampai</th>
+                    <th class="py-3 px-3">Keterangan / Bukti</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
+                @forelse($cashflows as $pay)
+                    @php
+                        $u = $pay->user;
+                        $activeSub = $u ? $u->activeSubscription : null;
+                        $latestSub = $u ? $u->subscription : null;
+                        $subToUse = $activeSub ?: $latestSub;
 
-                            $endsAt = ($subToUse && $subToUse->ends_at) ? \Carbon\Carbon::parse($subToUse->ends_at) : null;
-                            $daysLeft = $endsAt ? (int) now()->startOfDay()->diffInDays($endsAt->startOfDay(), false) : null;
+                        $endsAt = ($subToUse && $subToUse->ends_at) ? \Carbon\Carbon::parse($subToUse->ends_at) : null;
+                        $daysLeft = $endsAt ? (int) now()->startOfDay()->diffInDays($endsAt->startOfDay(), false) : null;
 
-                            $isBri = stripos($pay->bank_sender_name ?? '', 'BRI') !== false || stripos($pay->admin_note ?? '', 'BRI') !== false;
-                        @endphp
-                        <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition">
-                            <td class="py-3.5 px-3 whitespace-nowrap">
-                                <div class="font-semibold text-slate-800 dark:text-slate-200">
-                                    {{ $pay->created_at->format('d M Y') }}
-                                </div>
-                                <div class="text-[11px] text-slate-400">
-                                    Pukul {{ $pay->created_at->format('H:i') }} WIB
-                                </div>
-                            </td>
+                        $isBri = stripos($pay->bank_sender_name ?? '', 'BRI') !== false || stripos($pay->admin_note ?? '', 'BRI') !== false;
+                    @endphp
+                    <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition">
+                        <td class="py-3.5 px-3 whitespace-nowrap">
+                            <div class="font-semibold text-slate-800 dark:text-slate-200">
+                                {{ $pay->created_at->format('d M Y') }}
+                            </div>
+                            <div class="text-[11px] text-slate-400">
+                                Pukul {{ $pay->created_at->format('H:i') }} WIB
+                            </div>
+                        </td>
 
-                            <td class="py-3.5 px-3">
-                                @if($u)
-                                    <div class="font-bold text-slate-900 dark:text-white">{{ $u->name }}</div>
-                                    <div class="text-[11px] text-slate-400">{{ $u->email }}</div>
-                                @else
-                                    <span class="italic text-slate-400">User Terhapus</span>
-                                @endif
-                            </td>
+                        <td class="py-3.5 px-3 whitespace-nowrap">
+                            @if($u)
+                                <div class="font-bold text-slate-900 dark:text-white">{{ $u->name }}</div>
+                                <div class="text-[11px] text-slate-400">{{ $u->email }}</div>
+                            @else
+                                <span class="italic text-slate-400">User Terhapus</span>
+                            @endif
+                        </td>
 
-                            <td class="py-3.5 px-3">
-                                <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-500 font-bold text-[10px] uppercase">
-                                    {{ $pay->plan->name ?? 'Paket' }}
+                        <td class="py-3.5 px-3 whitespace-nowrap">
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-500 font-bold text-[10px] uppercase">
+                                {{ $pay->plan->name ?? 'Paket' }}
+                            </span>
+                            <div class="font-extrabold text-slate-900 dark:text-white text-sm mt-1">
+                                Rp {{ number_format($pay->amount, 0, ',', '.') }}
+                            </div>
+                        </td>
+
+                        <td class="py-3.5 px-3 whitespace-nowrap">
+                            @if($isBri)
+                                <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 font-bold text-[10px] inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-landmark"></i> BANK BRI
                                 </span>
-                                <div class="font-extrabold text-slate-900 dark:text-white text-sm mt-1">
-                                    Rp {{ number_format($pay->amount, 0, ',', '.') }}
-                                </div>
-                            </td>
+                            @else
+                                <span class="px-2 py-0.5 rounded bg-sky-500/15 text-sky-500 font-bold text-[10px] inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-building-columns"></i> BCA / BNI
+                                </span>
+                            @endif
+                            <div class="text-slate-700 dark:text-slate-300 font-medium mt-1">
+                                a.n {{ $pay->bank_sender_name ?? '-' }}
+                            </div>
+                        </td>
 
-                            <td class="py-3.5 px-3">
-                                @if($isBri)
-                                    <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 font-bold text-[10px] inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-landmark"></i> BANK BRI
+                        <td class="py-3.5 px-3 whitespace-nowrap">
+                            @if($activeSub)
+                                <div class="space-y-1">
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-bold text-[10px] inline-flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sedang Aktif
                                     </span>
-                                @else
-                                    <span class="px-2 py-0.5 rounded bg-sky-500/15 text-sky-500 font-bold text-[10px] inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-building-columns"></i> BCA / BNI
+                                    @if($endsAt)
+                                        <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                                            s/d {{ $endsAt->format('d M Y') }}
+                                        </div>
+                                        <div class="text-[11px] {{ $daysLeft <= 7 ? 'text-amber-500 font-bold' : 'text-emerald-500' }}">
+                                            (Sisa {{ max(0, $daysLeft) }} hari lagi)
+                                        </div>
+                                    @else
+                                        <div class="text-[11px] text-emerald-400 font-semibold">Aktif Selamanya (&infin;)</div>
+                                    @endif
+                                </div>
+                            @else
+                                <div class="space-y-1">
+                                    <span class="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-500 font-bold text-[10px] inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-clock"></i> Sudah Berakhir
                                     </span>
-                                @endif
-                                <div class="text-slate-700 dark:text-slate-300 font-medium mt-1">
-                                    a.n {{ $pay->bank_sender_name ?? '-' }}
+                                    @if($endsAt)
+                                        <div class="text-[11px] text-slate-400">
+                                            Habis pada: {{ $endsAt->format('d M Y') }}
+                                        </div>
+                                    @endif
                                 </div>
-                            </td>
+                            @endif
+                        </td>
 
-                            <td class="py-3.5 px-3">
-                                @if($activeSub)
-                                    <div class="space-y-1">
-                                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-bold text-[10px] inline-flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sedang Aktif
-                                        </span>
-                                        @if($endsAt)
-                                            <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                                                s/d {{ $endsAt->format('d M Y') }}
-                                            </div>
-                                            <div class="text-[11px] {{ $daysLeft <= 7 ? 'text-amber-500 font-bold' : 'text-emerald-500' }}">
-                                                (Sisa {{ max(0, $daysLeft) }} hari lagi)
-                                            </div>
-                                        @else
-                                            <div class="text-[11px] text-emerald-400 font-semibold">Aktif Selamanya (&infin;)</div>
-                                        @endif
-                                    </div>
-                                @else
-                                    <div class="space-y-1">
-                                        <span class="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-500 font-bold text-[10px] inline-flex items-center gap-1">
-                                            <i class="fa-solid fa-clock"></i> Sudah Berakhir
-                                        </span>
-                                        @if($endsAt)
-                                            <div class="text-[11px] text-slate-400">
-                                                Habis pada: {{ $endsAt->format('d M Y') }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endif
-                            </td>
-
-                            <td class="py-3.5 px-3 space-y-1.5">
-                                <div class="text-slate-600 dark:text-slate-300">
-                                    {{ $pay->admin_note ?: 'Pembayaran diverifikasi & paket diaktifkan' }}
-                                </div>
-                                @if($pay->proof_image_path)
-                                    <a href="{{ Storage::disk('supabase_proofs')->url($pay->proof_image_path) }}" 
-                                       target="_blank" 
-                                       class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 hover:underline">
-                                        <i class="fa-solid fa-receipt"></i> Lihat Bukti Transfer
-                                    </a>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="py-10 text-center text-slate-400">
-                                <i class="fa-solid fa-file-invoice-dollar text-2xl mb-2 block opacity-50"></i>
-                                Belum ada data pemasukan terverifikasi pada periode/filter ini.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if($cashflows->hasPages())
-            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-                {{ $cashflows->links() }}
-            </div>
-        @endif
+                        <td class="py-3.5 px-3 space-y-1.5 whitespace-nowrap">
+                            <div class="text-slate-600 dark:text-slate-300">
+                                {{ $pay->admin_note ?: 'Pembayaran diverifikasi & paket diaktifkan' }}
+                            </div>
+                            @if($pay->proof_image_path)
+                                <a href="{{ Storage::disk('supabase_proofs')->url($pay->proof_image_path) }}" 
+                                   target="_blank" 
+                                   class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 hover:underline">
+                                    <i class="fa-solid fa-receipt"></i> Lihat Bukti Transfer
+                                </a>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="py-10 text-center text-slate-400">
+                            <i class="fa-solid fa-file-invoice-dollar text-2xl mb-2 block opacity-50"></i>
+                            Belum ada data pemasukan terverifikasi pada periode/filter ini.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
+
+    @if($cashflows->hasPages())
+        <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+            {{ $cashflows->links() }}
+        </div>
+    @endif
+</div>
 
 </div>
 
