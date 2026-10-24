@@ -1,0 +1,286 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="space-y-6">
+
+    <!-- Header & Quick Filter Waktu -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
+                <i class="fa-solid fa-chart-line text-emerald-500"></i>
+                <span>Laporan Arus Kas & Pemasukan (Cashflow)</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Pantau total pendapatan langganan yang telah terverifikasi, rincian per rekening bank, dan masa aktif pelanggan.
+            </p>
+        </div>
+
+        <!-- Tombol Tab Filter Periode Waktu -->
+        <div class="inline-flex p-1 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm self-start">
+            @php
+                $periods = [
+                    'all' => ['label' => 'Semua Waktu', 'icon' => 'fa-infinity'],
+                    'today' => ['label' => 'Hari Ini', 'icon' => 'fa-calendar-day'],
+                    'week' => ['label' => 'Minggu Ini', 'icon' => 'fa-calendar-week'],
+                    'month' => ['label' => 'Bulan Ini', 'icon' => 'fa-calendar-days'],
+                ];
+            @endphp
+            @foreach($periods as $key => $item)
+                <a href="{{ route('admin.cashflow.index', array_merge(request()->except('page'), ['period' => $key])) }}"
+                   class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ $period === $key ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
+                    <i class="fa-solid {{ $item['icon'] }} text-[11px]"></i>
+                    <span>{{ $item['label'] }}</span>
+                </a>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- 3 Card Ringkasan Pemasukan (Total, BCA/BNI, BRI) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Card 1: Total Pemasukan Gabungan -->
+        <div class="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-white to-white dark:from-emerald-500/15 dark:via-slate-900 dark:to-slate-900 border border-emerald-500/30 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Total Pemasukan ({{ $periods[$period]['label'] ?? 'Semua' }})
+                </span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+            </div>
+            <div class="my-3">
+                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                    Rp {{ number_format($stats['total_income'], 0, ',', '.') }}
+                </div>
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between pt-2 border-t border-emerald-500/20">
+                <span>Total Transaksi Sukses:</span>
+                <strong class="text-emerald-600 dark:text-emerald-400">{{ $stats['total_trx'] }} Pembayaran</strong>
+            </div>
+        </div>
+
+        <!-- Card 2: Pemasukan Rekening BCA / BNI -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-sky-500">
+                        Rekening BCA / BNI
+                    </span>
+                    <div class="text-[10px] text-slate-400 font-mono">8810-2938-44</div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+            </div>
+            <div class="my-3">
+                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                    Rp {{ number_format($stats['bca_bni_income'], 0, ',', '.') }}
+                </div>
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                <span>Kontribusi Transaksi:</span>
+                <strong class="text-slate-700 dark:text-slate-200">{{ $stats['bca_bni_count'] }} Transaksi</strong>
+            </div>
+        </div>
+
+        <!-- Card 3: Pemasukan Rekening BRI -->
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-500">
+                        Rekening Bank BRI
+                    </span>
+                    <div class="text-[10px] text-slate-400 font-mono">5932 0103 8807 531</div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-landmark"></i>
+                </div>
+            </div>
+            <div class="my-3">
+                <div class="text-2xl font-extrabold text-slate-900 dark:text-white">
+                    Rp {{ number_format($stats['bri_income'], 0, ',', '.') }}
+                </div>
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                <span>Kontribusi Transaksi:</span>
+                <strong class="text-slate-700 dark:text-slate-200">{{ $stats['bri_count'] }} Transaksi</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bar Pencarian & Filter Bank -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+        <form action="{{ route('admin.cashflow.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <input type="hidden" name="period" value="{{ $period }}">
+
+            <div class="sm:col-span-2 relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" 
+                       name="search" 
+                       value="{{ $search }}" 
+                       placeholder="Cari nama pengguna, email, atau nama pengirim..." 
+                       class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+            </div>
+
+            <div>
+                <select name="bank" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+                    <option value="">Semua Bank (BCA/BNI & BRI)</option>
+                    <option value="BCA_BNI" {{ $bankFilter === 'BCA_BNI' ? 'selected' : '' }}>Khusus BCA / BNI</option>
+                    <option value="BRI" {{ $bankFilter === 'BRI' ? 'selected' : '' }}>Khusus Bank BRI</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="submit" class="w-full py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-filter"></i> Filter Data
+                </button>
+                @if(!empty($search) || !empty($bankFilter) || $period !== 'all')
+                    <a href="{{ route('admin.cashflow.index') }}" class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-xs font-bold transition" title="Reset Semua">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabel Rincian Pemasukan & Masa Aktif Langganan -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 uppercase text-[11px]">
+                    <tr>
+                        <th class="py-3 px-3">Tanggal Bayar</th>
+                        <th class="py-3 px-3">Pelanggan</th>
+                        <th class="py-3 px-3">Paket & Nominal</th>
+                        <th class="py-3 px-3">Bank & Pengirim</th>
+                        <th class="py-3 px-3">Status & Masa Aktif Sampai</th>
+                        <th class="py-3 px-3">Keterangan / Bukti</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
+                    @forelse($cashflows as $pay)
+                        @php
+                            $u = $pay->user;
+                            $activeSub = $u ? $u->activeSubscription : null;
+                            $latestSub = $u ? $u->subscription : null;
+                            $subToUse = $activeSub ?: $latestSub;
+
+                            $endsAt = ($subToUse && $subToUse->ends_at) ? \Carbon\Carbon::parse($subToUse->ends_at) : null;
+                            $daysLeft = $endsAt ? (int) now()->startOfDay()->diffInDays($endsAt->startOfDay(), false) : null;
+
+                            $isBri = stripos($pay->bank_sender_name, 'BRI') !== false || stripos($pay->admin_note ?? '', 'BRI') !== false;
+                        @endphp
+                        <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition">
+                            <!-- Tanggal Pembayaran -->
+                            <td class="py-3.5 px-3 whitespace-nowrap">
+                                <div class="font-semibold text-slate-800 dark:text-slate-200">
+                                    {{ $pay->created_at->format('d M Y') }}
+                                </div>
+                                <div class="text-[11px] text-slate-400">
+                                    Pukul {{ $pay->created_at->format('H:i') }} WIB
+                                </div>
+                            </td>
+
+                            <!-- Informasi Pelanggan -->
+                            <td class="py-3.5 px-3">
+                                @if($u)
+                                    <div class="font-bold text-slate-900 dark:text-white">{{ $u->name }}</div>
+                                    <div class="text-[11px] text-slate-400">{{ $u->email }}</div>
+                                @else
+                                    <span class="italic text-slate-400">User Terhapus</span>
+                                @endif
+                            </td>
+
+                            <!-- Paket & Nominal -->
+                            <td class="py-3.5 px-3">
+                                <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-500 font-bold text-[10px] uppercase">
+                                    {{ $pay->plan->name ?? 'Paket' }}
+                                </span>
+                                <div class="font-extrabold text-slate-900 dark:text-white text-sm mt-1">
+                                    Rp {{ number_format($pay->amount, 0, ',', '.') }}
+                                </div>
+                            </td>
+
+                            <!-- Bank & Pengirim -->
+                            <td class="py-3.5 px-3">
+                                @if($isBri)
+                                    <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-500 font-bold text-[10px] inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-landmark"></i> BANK BRI
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded bg-sky-500/15 text-sky-500 font-bold text-[10px] inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-building-columns"></i> BCA / BNI
+                                    </span>
+                                @endif
+                                <div class="text-slate-700 dark:text-slate-300 font-medium mt-1">
+                                    a.n {{ $pay->bank_sender_name }}
+                                </div>
+                            </td>
+
+                            <!-- Status & Masa Aktif Langganan -->
+                            <td class="py-3.5 px-3">
+                                @if($activeSub)
+                                    <div class="space-y-1">
+                                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-bold text-[10px] inline-flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sedang Aktif
+                                        </span>
+                                        @if($endsAt)
+                                            <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                                                s/d {{ $endsAt->format('d M Y') }}
+                                            </div>
+                                            <div class="text-[11px] {{ $daysLeft <= 7 ? 'text-amber-500 font-bold' : 'text-emerald-500' }}">
+                                                (Sisa {{ max(0, $daysLeft) }} hari lagi)
+                                            </div>
+                                        @else
+                                            <div class="text-[11px] text-emerald-400 font-semibold">Aktif Selamanya (&infin;)</div>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="space-y-1">
+                                        <span class="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-500 font-bold text-[10px] inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-clock"></i> Sudah Berakhir
+                                        </span>
+                                        @if($endsAt)
+                                            <div class="text-[11px] text-slate-400">
+                                                Habis pada: {{ $endsAt->format('d M Y') }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+                            </td>
+
+                            <!-- Keterangan & Bukti Struk -->
+                            <td class="py-3.5 px-3 space-y-1.5">
+                                <div class="text-slate-600 dark:text-slate-300">
+                                    {{ $pay->admin_note ?: 'Pembayaran diverifikasi & paket diaktifkan' }}
+                                </div>
+                                @if($pay->proof_image_path)
+                                    <a href="{{ Storage::disk('supabase_proofs')->url($pay->proof_image_path) }}" 
+                                       target="_blank" 
+                                       class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 hover:underline">
+                                        <i class="fa-solid fa-receipt"></i> Lihat Bukti Transfer
+                                    </a>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-10 text-center text-slate-400">
+                                <i class="fa-solid fa-file-invoice-dollar text-2xl mb-2 block opacity-50"></i>
+                                Belum ada data pemasukan terverifikasi pada periode/filter ini.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination (10 per halaman) -->
+        @if($cashflows->hasPages())
+            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                {{ $cashflows->links() }}
+            </div>
+        @endif
+    </div>
+
+</div>
+@endsection

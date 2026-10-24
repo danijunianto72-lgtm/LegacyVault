@@ -7,6 +7,7 @@ use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminCashflowController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\ActivityLog;
 use App\Models\User;
@@ -119,7 +120,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/assets', [AdminAssetMonitoringController::class, 'index'])->name('assets.index');
     Route::post('/assets/{asset}/approve-extension', [AdminAssetMonitoringController::class, 'approveExtension'])->name('assets.approveExtension');
     Route::post('/assets/{asset}/reject-extension', [AdminAssetMonitoringController::class, 'rejectExtension'])->name('assets.rejectExtension');
-
+Route::get('/cashflow', [AdminCashflowController::class, 'index'])->name('cashflow.index');
     // Log Audit Terpisah
     Route::get('/logs', [AdminLogController::class, 'index'])->name('logs.index');
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');

@@ -10,8 +10,8 @@
     banks: {
         'BCA': {
             name: 'BCA (Bank Central Asia)',
-            number: '8810-2938-44',
-            rawNumber: '8810293844',
+            number: '3201-4205-88',
+            rawNumber: '3201420588',
             holder: 'PT Brankas Warisan Digital'
         },
         'BRI': {
@@ -201,7 +201,7 @@
             <form action="{{ route('pricing.checkout') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <input type="hidden" name="plan_id" :value="selectedPlanId">
-
+                <input type="hidden" name="bank_destination" :value="selectedBank">
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                         <i class="fa-solid fa-user-check mr-1 text-emerald-500"></i> Nama Pengirim & Bank Asal

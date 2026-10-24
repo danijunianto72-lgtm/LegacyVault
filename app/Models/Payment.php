@@ -11,6 +11,7 @@ class Payment extends Model
         'user_id',
         'plan_id',
         'amount',
+        'bank_sender_name',
         'proof_image_path',
         'status',
         'admin_note',
