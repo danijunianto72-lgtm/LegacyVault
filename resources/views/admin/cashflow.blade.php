@@ -141,53 +141,105 @@
     <!-- ========================================== -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         
-        <!-- 1. Diagram Garis: Tren Pemasukan Harian (Lebar 2 Kolom di Desktop) -->
+        <!-- 1. Diagram Garis: Tren Pemasukan Harian + Combobox + Klik Titik Info -->
         <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-chart-area text-emerald-500"></i>
                         <span>Tren Pemasukan dari Hari ke Hari</span>
                     </h3>
-                    <p class="text-[11px] text-slate-400">Grafik pergerakan nominal transaksi yang disetujui</p>
+                    <p class="text-[11px] text-slate-400">Klik pada titik grafik untuk melihat rincian pemasukan pada waktu tersebut</p>
+                </div>
+
+                <!-- Combobox Filter Khusus Grafik Garis -->
+                <select id="linePeriodSelect" class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <option value="week" selected>7 Hari Terakhir</option>
+                    <option value="today">Hari Ini</option>
+                    <option value="month">Bulan Ini</option>
+                    <option value="all">Semua Waktu</option>
+                </select>
+            </div>
+
+            <!-- Box Info Muncul Saat Titik Grafik Diklik -->
+            <div id="linePointInfoBox" class="hidden mb-4 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs transition-all">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span id="pointDateLabel" class="font-bold text-slate-900 dark:text-white"></span>
+                    </div>
+                    <button type="button" onclick="document.getElementById('linePointInfoBox').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5 pt-2.5 border-t border-emerald-500/20">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Total Pemasukan</span>
+                        <span id="pointTotalValue" class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Jumlah Transaksi</span>
+                        <span id="pointTrxCount" class="font-bold text-slate-800 dark:text-slate-200"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Dari BCA / BNI</span>
+                        <span id="pointBcaValue" class="font-bold text-sky-500"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Dari Bank BRI</span>
+                        <span id="pointBriValue" class="font-bold text-amber-500"></span>
+                    </div>
                 </div>
             </div>
+
             <div class="relative h-64 w-full">
-                <canvas id="incomeLineChart"></canvas>
+                <canvas id="incomeLineChart" class="cursor-pointer"></canvas>
             </div>
         </div>
 
-        <!-- 2. Diagram Lingkaran: Status Pembayaran -->
+        <!-- 2. Diagram Lingkaran: Status Pembayaran + Combobox -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
-            <div class="mb-4">
-                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-chart-pie text-amber-500"></i>
-                    <span>Rasio Status Pembayaran</span>
-                </h3>
-                <p class="text-[11px] text-slate-400">Perbandingan Menunggu, Approved & Rejected</p>
+            <div class="flex items-start justify-between gap-2 mb-4">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-amber-500"></i>
+                        <span>Status Pembayaran</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Menunggu, Approved & Rejected</p>
+                </div>
+
+                <!-- Combobox Filter Khusus Grafik Lingkaran -->
+                <select id="piePeriodSelect" class="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-amber-500">
+                    <option value="all" selected>Semua Waktu</option>
+                    <option value="today">Hari Ini</option>
+                    <option value="week">7 Hari Terakhir</option>
+                    <option value="month">Bulan Ini</option>
+                </select>
             </div>
+
             <div class="relative h-52 w-full flex items-center justify-center">
                 <canvas id="statusPieChart"></canvas>
             </div>
+
             <div class="grid grid-cols-3 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-center text-[11px]">
                 <div>
-                    <span class="text-amber-500 font-bold block">{{ $chartData['pie']['pending'] }}</span>
+                    <span id="piePendingCount" class="text-amber-500 font-bold block">{{ $chartData['pie']['all']['pending'] }}</span>
                     <span class="text-slate-400">Menunggu</span>
                 </div>
                 <div>
-                    <span class="text-emerald-500 font-bold block">{{ $chartData['pie']['approved'] }}</span>
+                    <span id="pieApprovedCount" class="text-emerald-500 font-bold block">{{ $chartData['pie']['all']['approved'] }}</span>
                     <span class="text-slate-400">Approved</span>
                 </div>
                 <div>
-                    <span class="text-rose-500 font-bold block">{{ $chartData['pie']['rejected'] }}</span>
+                    <span id="pieRejectedCount" class="text-rose-500 font-bold block">{{ $chartData['pie']['all']['rejected'] }}</span>
                     <span class="text-slate-400">Rejected</span>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Diagram Batang: Perbandingan Bank BCA/BNI vs BRI (Full Width di Bawahnya) -->
+        <!-- 3. Diagram Batang: Perbandingan Bank BCA/BNI vs BRI + Combobox -->
         <div class="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-chart-column text-sky-500"></i>
@@ -195,6 +247,14 @@
                     </h3>
                     <p class="text-[11px] text-slate-400">Perbandingan total nominal rupiah yang masuk ke masing-masing rekening</p>
                 </div>
+
+                <!-- Combobox Filter Khusus Grafik Batang -->
+                <select id="barPeriodSelect" class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-sky-500">
+                    <option value="all" selected>Semua Waktu</option>
+                    <option value="today">Hari Ini</option>
+                    <option value="week">7 Hari Terakhir</option>
+                    <option value="month">Bulan Ini</option>
+                </select>
             </div>
             <div class="relative h-56 w-full">
                 <canvas id="bankBarChart"></canvas>
@@ -342,27 +402,52 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const allChartData = @json($chartData);
     const textColor = '#94a3b8';
     const gridColor = 'rgba(148, 163, 184, 0.1)';
 
-    // 1. Diagram Garis: Tren Pemasukan Harian
+    const formatRp = (val) => 'Rp ' + Number(val).toLocaleString('id-ID');
+
+    // ====================================================
+    // 1. DIAGRAM GARIS (TREN PEMASUKAN + KLIK TITIK INFO)
+    // ====================================================
+    let currentLinePeriod = document.getElementById('linePeriodSelect').value;
     const lineCtx = document.getElementById('incomeLineChart').getContext('2d');
     const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 240);
     lineGradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
     lineGradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
 
-    new Chart(lineCtx, {
+    const showPointDetails = (index) => {
+        const periodDataset = allChartData.line[currentLinePeriod];
+        if (!periodDataset || !periodDataset.details[index]) return;
+
+        const detail = periodDataset.details[index];
+        const amount = periodDataset.data[index];
+
+        document.getElementById('pointDateLabel').textContent = detail.full_date;
+        document.getElementById('pointTotalValue').textContent = formatRp(amount);
+        document.getElementById('pointTrxCount').textContent = detail.count + ' Transaksi';
+        document.getElementById('pointBcaValue').textContent = formatRp(detail.bca_bni);
+        document.getElementById('pointBriValue').textContent = formatRp(detail.bri);
+
+        document.getElementById('linePointInfoBox').classList.remove('hidden');
+    };
+
+    const lineChart = new Chart(lineCtx, {
         type: 'line',
         data: {
-            labels: @json($chartData['line']['labels']),
+            labels: allChartData.line[currentLinePeriod].labels,
             datasets: [{
-                label: 'Total Pemasukan (Rp)',
-                data: @json($chartData['line']['data']),
+                label: 'Total Pemasukan',
+                data: allChartData.line[currentLinePeriod].data,
                 borderColor: '#10b981',
                 backgroundColor: lineGradient,
                 borderWidth: 2.5,
                 pointBackgroundColor: '#10b981',
-                pointRadius: 4,
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 8,
                 fill: true,
                 tension: 0.35
             }]
@@ -370,12 +455,32 @@ document.addEventListener('DOMContentLoaded', function () {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'nearest',
+                intersect: true
+            },
+            onClick: function(event, elements) {
+                if (elements.length > 0) {
+                    const firstPoint = elements[0];
+                    showPointDetails(firstPoint.index);
+                }
+            },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
+                        title: function(context) {
+                            const idx = context[0].dataIndex;
+                            const detail = allChartData.line[currentLinePeriod].details[idx];
+                            return detail ? detail.full_date : context[0].label;
+                        },
                         label: function(context) {
-                            return ' Rp ' + Number(context.raw).toLocaleString('id-ID');
+                            const idx = context.dataIndex;
+                            const detail = allChartData.line[currentLinePeriod].details[idx];
+                            return [
+                                ' Total: ' + formatRp(context.raw),
+                                ' Transaksi: ' + (detail ? detail.count : 0) + 'x (Klik titik untuk detail)'
+                            ];
                         }
                     }
                 }
@@ -390,9 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ticks: {
                         color: textColor,
                         font: { size: 11 },
-                        callback: function(value) {
-                            return 'Rp ' + Number(value).toLocaleString('id-ID');
-                        }
+                        callback: function(value) { return formatRp(value); }
                     },
                     grid: { color: gridColor }
                 }
@@ -400,17 +503,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // 2. Diagram Lingkaran: Status Pembayaran (Menunggu, Approved, Rejected)
+    // Event saat Combobox Diagram Garis diubah
+    document.getElementById('linePeriodSelect').addEventListener('change', function (e) {
+        currentLinePeriod = e.target.value;
+        lineChart.data.labels = allChartData.line[currentLinePeriod].labels;
+        lineChart.data.datasets[0].data = allChartData.line[currentLinePeriod].data;
+        lineChart.update();
+        document.getElementById('linePointInfoBox').classList.add('hidden');
+    });
+
+    // ====================================================
+    // 2. DIAGRAM LINGKARAN (STATUS PEMBAYARAN)
+    // ====================================================
     const pieCtx = document.getElementById('statusPieChart').getContext('2d');
-    new Chart(pieCtx, {
+    const pieChart = new Chart(pieCtx, {
         type: 'doughnut',
         data: {
             labels: ['Menunggu Verifikasi', 'Approved (Disetujui)', 'Rejected (Ditolak)'],
             datasets: [{
                 data: [
-                    {{ $chartData['pie']['pending'] }},
-                    {{ $chartData['pie']['approved'] }},
-                    {{ $chartData['pie']['rejected'] }}
+                    allChartData.pie.all.pending,
+                    allChartData.pie.all.approved,
+                    allChartData.pie.all.rejected
                 ],
                 backgroundColor: ['#f59e0b', '#10b981', '#f43f5e'],
                 borderWidth: 0,
@@ -430,21 +544,35 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // 3. Diagram Batang: Perbandingan Bank BCA/BNI vs BRI
+    // Event saat Combobox Diagram Lingkaran diubah
+    document.getElementById('piePeriodSelect').addEventListener('change', function (e) {
+        const p = e.target.value;
+        const d = allChartData.pie[p];
+        pieChart.data.datasets[0].data = [d.pending, d.approved, d.rejected];
+        pieChart.update();
+
+        document.getElementById('piePendingCount').textContent = d.pending;
+        document.getElementById('pieApprovedCount').textContent = d.approved;
+        document.getElementById('pieRejectedCount').textContent = d.rejected;
+    });
+
+    // ====================================================
+    // 3. DIAGRAM BATANG (BCA/BNI VS BRI)
+    // ====================================================
     const barCtx = document.getElementById('bankBarChart').getContext('2d');
-    new Chart(barCtx, {
+    const barChart = new Chart(barCtx, {
         type: 'bar',
         data: {
             labels: ['Rekening BCA / BNI', 'Rekening Bank BRI'],
             datasets: [{
                 label: 'Nominal Pemasukan (Rp)',
                 data: [
-                    {{ $chartData['bar']['bca_bni'] }},
-                    {{ $chartData['bar']['bri'] }}
+                    allChartData.bar.all.bca_bni,
+                    allChartData.bar.all.bri
                 ],
                 backgroundColor: [
-                    'rgba(14, 165, 233, 0.75)', // Biru (BCA/BNI)
-                    'rgba(245, 158, 11, 0.75)'  // Kuning/Amber (BRI)
+                    'rgba(14, 165, 233, 0.75)',
+                    'rgba(245, 158, 11, 0.75)'
                 ],
                 borderColor: ['#0ea5e9', '#f59e0b'],
                 borderWidth: 1.5,
@@ -460,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return ' Rp ' + Number(context.raw).toLocaleString('id-ID');
+                            return ' ' + formatRp(context.raw);
                         }
                     }
                 }
@@ -475,14 +603,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     ticks: {
                         color: textColor,
                         font: { size: 11 },
-                        callback: function(value) {
-                            return 'Rp ' + Number(value).toLocaleString('id-ID');
-                        }
+                        callback: function(value) { return formatRp(value); }
                     },
                     grid: { color: gridColor }
                 }
             }
         }
+    });
+
+    // Event saat Combobox Diagram Batang diubah
+    document.getElementById('barPeriodSelect').addEventListener('change', function (e) {
+        const p = e.target.value;
+        barChart.data.datasets[0].data = [
+            allChartData.bar[p].bca_bni,
+            allChartData.bar[p].bri
+        ];
+        barChart.update();
     });
 });
 </script>
