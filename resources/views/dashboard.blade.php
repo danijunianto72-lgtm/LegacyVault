@@ -1223,13 +1223,6 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         <label class="block text-xs font-semibold text-slate-400 mb-1">Perbarui Lampiran Dokumen/Foto (Opsional)</label>
                         <input type="file" name="attachment" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-emerald-500/15 file:text-emerald-400 file:font-bold">
                     </div>
-
-                    <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5">
-                        <label class="block text-xs font-bold text-amber-400">
-                            <i class="fa-solid fa-lock mr-1"></i> Konfirmasi Kata Sandi Akun Anda *
-                        </label>
-                        <input type="password" name="account_password" required placeholder="Masukkan password login untuk menyimpan perubahan" class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
-                    </div>
                     <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-1">Kategori Aset</label>
                     <select name="category" 
@@ -1241,11 +1234,30 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
                         <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
                     </select>
+                    
                 </div>
 
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="editModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Batal</button>
                         <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold">Simpan Perubahan</button>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5"
+                        x-data="{ showPass: false }">
+                        <label class="block text-xs font-bold text-amber-400">
+                            <i class="fa-solid fa-lock mr-1"></i> Konfirmasi Kata Sandi Akun Anda *
+                        </label>
+                        <div class="relative">
+                            <input :type="showPass ? 'text' : 'password'" 
+                                name="account_password" 
+                                required 
+                                placeholder="Masukkan password login untuk menyimpan perubahan" 
+                                class="w-full px-3.5 py-2 pr-10 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+                            <button type="button" 
+                                    @click="showPass = !showPass" 
+                                    class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                                <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1268,22 +1280,22 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                     @method('DELETE')
 
                    <div class="space-y-1.5 text-left" x-data="{ showPass: false }">
-    <label class="block text-xs font-bold text-rose-500 dark:text-rose-400">
-        <i class="fa-solid fa-key mr-1"></i> Masukkan Password untuk Konfirmasi Hapus *
-    </label>
-    <div class="relative">
-        <input :type="showPass ? 'text' : 'password'" 
-               name="account_password" 
-               required 
-               placeholder="Ketik password akun Anda" 
-               class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-rose-500/30 focus:border-rose-500 focus:outline-none text-xs text-slate-900 dark:text-white">
-        <button type="button" 
-                @click="showPass = !showPass" 
-                class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
-            <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
-        </button>
-    </div>
-</div>
+                        <label class="block text-xs font-bold text-rose-500 dark:text-rose-400">
+                            <i class="fa-solid fa-key mr-1"></i> Masukkan Password untuk Konfirmasi Hapus *
+                        </label>
+                        <div class="relative">
+                            <input :type="showPass ? 'text' : 'password'" 
+                                name="account_password" 
+                                 required 
+                                placeholder="Ketik password akun Anda" 
+                                class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-rose-500/30 focus:border-rose-500 focus:outline-none text-xs text-slate-900 dark:text-white">
+                            <button type="button" 
+                                    @click="showPass = !showPass" 
+                                    class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                                <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Batal</button>
                         <button type="submit" class="px-5 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-extrabold">Ya, Hapus Permanen</button>
