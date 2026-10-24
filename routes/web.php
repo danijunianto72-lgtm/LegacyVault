@@ -73,6 +73,7 @@ Route::post('/logout', function (Request $request) {
 
 // Protected Area (Wajib Login)
 Route::middleware('auth')->group(function () {
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/assets/{asset}/request-extension', [AssetController::class, 'requestExtension'])->name('assets.requestExtension');
     // Halaman Syarat Legalitas & Panduan Penggunaan (Onboarding)
     Route::get('/onboarding', function () {
