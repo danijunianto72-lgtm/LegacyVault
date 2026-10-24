@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminLogController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\AdminUserController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\ActivityLog;
 use App\Models\User;
@@ -121,5 +122,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Log Audit Terpisah
     Route::get('/logs', [AdminLogController::class, 'index'])->name('logs.index');
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 });
 });

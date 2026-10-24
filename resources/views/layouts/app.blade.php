@@ -240,6 +240,14 @@
                             <i class="fa-solid fa-shield-halved w-5 text-center text-base shrink-0"></i>
                             <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Log Audit Sistem</span>
                         </a>
+                        <!-- Menu Kelola Pengguna (Tambahkan di deretan menu Admin) -->
+                        <a href="{{ route('admin.users.index') }}" 
+                        :title="sidebarCollapsed ? 'Kelola Pengguna' : ''"
+                        :class="sidebarCollapsed ? 'lg:justify-center lg:px-0' : 'px-3.5'"
+                        class="flex items-center gap-3 py-2.5 rounded-xl font-medium transition {{ request()->routeIs('admin.users.*') ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <i class="fa-solid fa-users-gear w-5 text-center text-base shrink-0"></i>
+                            <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Kelola Pengguna</span>
+                        </a>
                     @endif
 
                     <!-- Menu 5: Pusat Bantuan -->
