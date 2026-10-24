@@ -531,10 +531,17 @@
                     <span class="text-slate-400 font-medium flex items-center gap-2">
                         <i class="fa-solid fa-gem text-emerald-500"></i> Tier Paket
                     </span>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-emerald-500">{{ auth()->user()->plan->name ?? 'Free' }}</span>
-                        <a href="{{ route('pricing') }}" class="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold hover:bg-emerald-500/20 transition">Upgrade</a>
-                    </div>
+                    @if(!auth()->user()->isAdmin())
+    <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+        <span class="text-slate-400 font-medium flex items-center gap-2">
+            <i class="fa-solid fa-gem text-emerald-500"></i> Tier Paket
+        </span>
+        <div class="flex items-center gap-2">
+            <span class="font-bold text-emerald-500">{{ auth()->user()->plan->name ?? 'Free' }}</span>
+            <a href="{{ url('/pricing') }}" class="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold hover:bg-emerald-500/20 transition">Upgrade</a>
+        </div>
+    </div>
+@endif
                 </div>
 
                 <!-- Tombol Navigasi Modal -->
