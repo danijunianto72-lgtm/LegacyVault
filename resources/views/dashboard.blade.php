@@ -683,7 +683,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
 
         <!-- Ringkasan Log Aktivitas Terakhir -->
-        <div class="mt-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+        <!-- <div class="mt-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-shield-virus text-emerald-500"></i>
@@ -708,7 +708,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                     <p class="text-slate-500 py-2">Belum ada aktivitas tercatat.</p>
                 @endforelse
             </div>
-        </div>
+        </div> -->
     </div>
 
     <!-- TAB 2: DAFTAR AHLI WARIS -->
@@ -795,42 +795,42 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
     </div>
 
     <!-- TAB 3: LOG AKTIVITAS KEAMANAN -->
-    <div x-show="activeTab === 'logs'" x-cloak x-transition.opacity class="space-y-6">
-        <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
-            <span>Riwayat Aktivitas & Audit Keamanan Akun</span>
-        </h2>
-        <div class="overflow-x-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
-            <table class="w-full text-left text-xs">
-                <thead class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                        <th class="py-2.5">Waktu</th>
-                        <th class="py-2.5">Aksi</th>
-                        <th class="py-2.5">Keterangan Aktivitas</th>
-                        <th class="py-2.5">Alamat IP</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
-                    @forelse($activityLogs as $log)
+        <div x-show="activeTab === 'logs'" x-cloak x-transition.opacity class="space-y-6">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
+                <span>Riwayat Aktivitas & Audit Keamanan Akun</span>
+            </h2>
+            <div class="overflow-x-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4">
+                <table class="w-full text-left text-xs">
+                    <thead class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <tr>
-                            <td class="py-3 text-slate-500 dark:text-slate-400">{{ $log->created_at->format('d M Y H:i:s') }}</td>
-                            <td class="py-3">
-                                <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[10px] font-bold">
-                                    {{ $log->action }}
-                                </span>
-                            </td>
-                            <td class="py-3 text-slate-800 dark:text-slate-200">{{ $log->description }}</td>
-                            <td class="py-3 font-mono text-slate-400">{{ $log->ip_address }}</td>
+                            <th class="py-2.5">Waktu</th>
+                            <th class="py-2.5">Aksi</th>
+                            <th class="py-2.5">Keterangan Aktivitas</th>
+                            <th class="py-2.5">Alamat IP</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="py-4 text-center text-slate-500">Belum ada catatan aktivitas.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
+                        @forelse($activityLogs as $log)
+                            <tr>
+                                <td class="py-3 text-slate-500 dark:text-slate-400">{{ $log->created_at->format('d M Y H:i:s') }}</td>
+                                <td class="py-3">
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[10px] font-bold">
+                                        {{ $log->action }}
+                                    </span>
+                                </td>
+                                <td class="py-3 text-slate-800 dark:text-slate-200">{{ $log->description }}</td>
+                                <td class="py-3 font-mono text-slate-400">{{ $log->ip_address }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="py-4 text-center text-slate-500">Belum ada catatan aktivitas.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
     <!-- ========================================================= -->
     <!-- MODAL 1: VERIFIKASI DEKRIPSI TEKS RAHASIA                  -->
