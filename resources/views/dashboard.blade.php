@@ -847,9 +847,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
     </div>
 </div>
 
-    <!-- ========================================================= -->
     <!-- MODAL 1: VERIFIKASI DEKRIPSI TEKS RAHASIA                  -->
-    <!-- ========================================================= -->
     <div x-show="decryptModalOpen" 
          x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
@@ -914,9 +912,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </div>
 
-    <!-- ========================================================= -->
     <!-- MODAL 2: SIMPAN ASET BARU KE BRANKAS                       -->
-    <!-- ========================================================= -->
    <template x-teleport="body">
     <div x-show="showAddAssetModal" 
          x-cloak 
@@ -1036,9 +1032,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </div>
 </template>
-    <!-- ========================================================= -->
     <!-- MODAL 3: BUKA LAMPIRAN TERPROTEKSI PASSWORD               -->
-    <!-- ========================================================= -->
     <div x-show="attachModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
         <div @click.away="attachModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -1088,9 +1082,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </div>
 
-    <!-- ========================================================= -->
     <!-- MODAL 4: EDIT DATA AHLI WARIS                             -->
-    <!-- ========================================================= -->
     <div x-show="editBeneficiaryModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
         <div @click.away="editBeneficiaryModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -1130,9 +1122,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </div>
 
-    <!-- ========================================================= -->
     <!-- MODAL 5: PERINGATAN ASET MAU KADALUARSA (TELEPORT)         -->
-    <!-- ========================================================= -->
     @if($expiringCount > 0)
     <template x-teleport="body">
         <div x-show="expiryAlertModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
@@ -1178,9 +1168,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
     </template>
     @endif
 
-    <!-- ========================================================= -->
     <!-- MODAL 6: EDIT ASET (WAJIB INPUT PASSWORD AKUN)             -->
-    <!-- ========================================================= -->
     <template x-teleport="body">
         <div x-show="editModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
             <div @click.away="editModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl">
@@ -1264,18 +1252,30 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </template>
 
-    <!-- ========================================================= -->
     <!-- MODAL 7: HAPUS ASET (WAJIB INPUT PASSWORD AKUN)           -->
-    <!-- ========================================================= -->
     <template x-teleport="body">
         <div x-show="deleteModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
             <div @click.away="deleteModalOpen = false" class="bg-white dark:bg-slate-900 border border-rose-500/40 rounded-3xl max-w-md w-full p-6 shadow-2xl">
                 <h3 class="text-base font-extrabold text-rose-500 mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-trash-can"></i> Konfirmasi Hapus Aset
                 </h3>
-                <p class="text-xs text-slate-400 mb-4">
-                    Anda akan menghapus aset <strong class="text-white" x-text="selectedAsset.title"></strong>. Masukkan kata sandi akun Anda untuk melanjutkan.
-                </p>
+                <div class="space-y-1.5 text-left" x-data="{ showPass: false }">
+    <label class="block text-xs font-bold text-rose-500 dark:text-rose-400">
+        <i class="fa-solid fa-key mr-1"></i> Masukkan Password untuk Konfirmasi Hapus *
+    </label>
+    <div class="relative">
+        <input :type="showPass ? 'text' : 'password'" 
+               name="account_password" 
+               required 
+               placeholder="Ketik password akun Anda" 
+               class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-rose-500/30 focus:border-rose-500 focus:outline-none text-xs text-slate-900 dark:text-white">
+        <button type="button" 
+                @click="showPass = !showPass" 
+                class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+            <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+        </button>
+    </div>
+</div>
 
                 <form :action="'/assets/' + selectedAsset.id" method="POST" class="space-y-4">
                     @csrf
@@ -1295,7 +1295,6 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </template>
 
-    <!-- ========================================================= -->
 <!-- MODAL: PERINGATAN WAJIB DAFTAR AHLI WARIS TERLEBIH DAHULU -->
 <!-- ========================================================= -->
 <template x-teleport="body">
