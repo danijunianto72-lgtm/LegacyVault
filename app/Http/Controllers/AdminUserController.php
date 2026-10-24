@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Plan;
+use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class AdminUserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with('plan')->withCount(['assets', 'beneficiaries']);
+        $query = User::with(['activeSubscription.plan', 'subscription.plan'])
+            ->withCount(['assets', 'beneficiaries']);
 
         // 1. Pencarian (Nama, Email, WhatsApp, ID)
         if ($request->filled('search')) {
@@ -34,23 +36,34 @@ class AdminUserController extends Controller
             $query->where('role', $request->role);
         }
 
-        // 3. Filter Paket (plan_id atau free)
+        // 3. Filter Paket berdasarkan activeSubscription
         if ($request->filled('plan_id')) {
-            if ($request->plan_id === 'free') {
-                $query->whereNull('plan_id');
+            $freePlan = Plan::where('slug', 'free')->first();
+            if ($request->plan_id === 'free' || ($freePlan && (int)$request->plan_id === $freePlan->id)) {
+                $query->whereDoesntHave('activeSubscription', function ($q) use ($freePlan) {
+                    if ($freePlan) {
+                        $q->where('plan_id', '!=', $freePlan->id);
+                    }
+                });
             } else {
-                $query->where('plan_id', $request->plan_id);
+                $query->whereHas('activeSubscription', function ($q) use ($request) {
+                    $q->where('plan_id', $request->plan_id);
+                });
             }
         }
 
         $users = $query->latest()->paginate(10)->withQueryString();
         $plans = Plan::all();
 
-        // Statistik ringkas
+        $freePlanId = Plan::where('slug', 'free')->value('id');
         $stats = [
             'total' => User::count(),
             'admins' => User::where('role', 'admin')->count(),
-            'subscribed' => User::whereNotNull('plan_id')->count(),
+            'subscribed' => User::whereHas('activeSubscription', function ($q) use ($freePlanId) {
+                if ($freePlanId) {
+                    $q->where('plan_id', '!=', $freePlanId);
+                }
+            })->count(),
         ];
 
         return view('admin.users', compact('users', 'plans', 'stats'));
@@ -70,7 +83,6 @@ class AdminUserController extends Controller
             'password' => ['nullable', 'string', 'min:8'],
         ]);
 
-        // Cegah admin mencabut role admin miliknya sendiri secara tidak sengaja
         if ($user->id === $request->user()->id && $validated['role'] !== 'admin') {
             return back()->with('error', 'Anda tidak dapat menurunkan role Admin pada akun Anda sendiri.');
         }
@@ -82,16 +94,41 @@ class AdminUserController extends Controller
             'gender' => $validated['gender'] ?? null,
             'birth_date' => $validated['birth_date'] ?? null,
             'role' => $validated['role'],
-            'plan_id' => $validated['plan_id'] ?: null,
-            'plan_expires_at' => $validated['plan_id'] ? ($validated['plan_expires_at'] ?? null) : null,
         ];
 
-        // Jika admin mengisi kolom password baru, update passwordnya
         if (!empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);
         }
 
         $user->update($updateData);
+
+        // Kelola Langganan (Subscription) User
+        $selectedPlan = !empty($validated['plan_id']) ? Plan::find($validated['plan_id']) : null;
+
+        if (!$selectedPlan || $selectedPlan->slug === 'free') {
+            // Jika disetel ke Free, nonaktifkan langganan aktif yang ada
+            $user->subscriptions()->where('status', 'active')->update(['status' => 'cancelled']);
+        } else {
+            // Update langganan aktif saat ini atau buat baru
+            $activeSub = $user->activeSubscription;
+            $endsAt = !empty($validated['plan_expires_at']) ? $validated['plan_expires_at'] : null;
+
+            if ($activeSub) {
+                $activeSub->update([
+                    'plan_id' => $selectedPlan->id,
+                    'ends_at' => $endsAt,
+                    'status' => 'active',
+                ]);
+            } else {
+                Subscription::create([
+                    'user_id' => $user->id,
+                    'plan_id' => $selectedPlan->id,
+                    'starts_at' => now(),
+                    'ends_at' => $endsAt,
+                    'status' => 'active',
+                ]);
+            }
+        }
 
         ActivityLog::record(
             'ADMIN_UPDATE_USER',
@@ -107,7 +144,6 @@ class AdminUserController extends Controller
             return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif!');
         }
 
-        // Hapus file avatar di Supabase jika ada
         if ($user->avatar_url) {
             $oldPath = parse_url($user->avatar_url, PHP_URL_PATH);
             $filePath = ltrim(strstr($oldPath, 'avatars/'), '/');

@@ -134,10 +134,13 @@
                         <th class="py-3 px-2 text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
                     @forelse($users as $u)
                         @php
-                            $planExpires = $u->plan_expires_at ? \Carbon\Carbon::parse($u->plan_expires_at) : null;
+                            $activeSub = $u->activeSubscription;
+                            $latestSub = $u->subscription;
+                            $currentPlan = $u->currentPlan();
+                            $planExpires = $activeSub && $activeSub->ends_at ? \Carbon\Carbon::parse($activeSub->ends_at) : null;
                             $daysLeft = $planExpires ? (int) now()->startOfDay()->diffInDays($planExpires->startOfDay(), false) : null;
                         @endphp
                         <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition">
@@ -181,7 +184,7 @@
                                     <span>•</span>
                                     <span>
                                         <i class="fa-solid fa-cake-candles mr-1"></i>
-                                        {{ $u->birth_date ? \Carbon\Carbon::parse($u->birth_date)->format('d M Y') : '-' }}
+                                        {{ $u->birth_date ? $u->birth_date->format('d M Y') : '-' }}
                                     </span>
                                 </div>
                             </td>
@@ -203,18 +206,14 @@
                             <td class="py-3.5 px-2">
                                 @if($u->role === 'admin')
                                     <span class="text-xs font-mono text-amber-500 font-semibold">Unlimited (Admin)</span>
-                                @elseif($u->plan)
+                                @elseif($activeSub && $activeSub->plan && $activeSub->plan->slug !== 'free')
                                     <div class="space-y-1">
                                         <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-bold text-[11px] inline-flex items-center gap-1">
-                                            <i class="fa-solid fa-gem text-[10px]"></i> {{ $u->plan->name }}
+                                            <i class="fa-solid fa-gem text-[10px]"></i> {{ $activeSub->plan->name }}
                                         </span>
                                         @if($planExpires)
                                             <div class="text-[11px]">
-                                                @if($daysLeft < 0)
-                                                    <span class="text-rose-500 font-bold">
-                                                        Kadaluarsa ({{ abs($daysLeft) }} hari lalu)
-                                                    </span>
-                                                @elseif($daysLeft === 0)
+                                                @if($daysLeft === 0)
                                                     <span class="text-amber-500 font-bold">Berakhir Hari Ini</span>
                                                 @elseif($daysLeft <= 7)
                                                     <span class="text-amber-500 font-semibold">Sisa {{ $daysLeft }} hari lagi</span>
@@ -228,7 +227,16 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span class="text-slate-400 italic">Free / Belum Berlangganan</span>
+                                    <div class="space-y-0.5">
+                                        <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold text-[11px]">
+                                            {{ $currentPlan->name ?? 'Free' }}
+                                        </span>
+                                        @if($latestSub && $latestSub->ends_at && \Carbon\Carbon::parse($latestSub->ends_at)->isPast())
+                                            <div class="text-[10px] text-rose-500">
+                                                Eks {{ $latestSub->plan->name ?? '' }} (Habis {{ \Carbon\Carbon::parse($latestSub->ends_at)->format('d M Y') }})
+                                            </div>
+                                        @endif
+                                    </div>
                                 @endif
                             </td>
 
@@ -252,10 +260,10 @@
                                                 email: '{{ addslashes($u->email) }}',
                                                 phone: '{{ addslashes($u->phone ?? '') }}',
                                                 gender: '{{ $u->gender ?? '' }}',
-                                                birth_date: '{{ $u->birth_date ? \Carbon\Carbon::parse($u->birth_date)->format('Y-m-d') : '' }}',
+                                                birth_date: '{{ $u->birth_date ? $u->birth_date->format('Y-m-d') : '' }}',
                                                 role: '{{ $u->role }}',
-                                                plan_id: '{{ $u->plan_id ?? '' }}',
-                                                plan_expires_at: '{{ $u->plan_expires_at ? \Carbon\Carbon::parse($u->plan_expires_at)->format('Y-m-d') : '' }}',
+                                                plan_id: '{{ $activeSub ? $activeSub->plan_id : ($currentPlan->id ?? '') }}',
+                                                plan_expires_at: '{{ $planExpires ? $planExpires->format('Y-m-d') : '' }}',
                                                 avatar_url: '{{ $u->avatar_url ?? '' }}'
                                             })"
                                             class="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold text-xs transition inline-flex items-center gap-1">
