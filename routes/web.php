@@ -6,7 +6,7 @@ use App\Http\Controllers\AdminLogController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\AdminUserController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SubscriptionController;
 use App\Models\ActivityLog;
 use App\Models\User;
