@@ -533,7 +533,7 @@
                     </span>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-emerald-500">{{ auth()->user()->plan->name ?? 'Free' }}</span>
-                        <a href="{{ route('plans.index') }}" class="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold hover:bg-emerald-500/20 transition">Upgrade</a>
+                        <a href="{{ route('pricing') }}" class="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 font-semibold hover:bg-emerald-500/20 transition">Upgrade</a>
                     </div>
                 </div>
 
