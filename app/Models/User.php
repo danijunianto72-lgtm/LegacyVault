@@ -7,9 +7,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+// ... di dalam class User ...
 
 class User extends Authenticatable
 {
+
     use HasFactory, Notifiable;
 
 protected $fillable = [
@@ -28,6 +33,20 @@ protected $fillable = [
     
 ];
 
+public function plan(): BelongsTo
+{
+    return $this->belongsTo(Plan::class, 'plan_id');
+}
+
+public function assets(): HasMany
+{
+    return $this->hasMany(Asset::class);
+}
+
+public function beneficiaries(): HasMany
+{
+    return $this->hasMany(Beneficiary::class);
+}
     protected function casts(): array
     {
         return [
