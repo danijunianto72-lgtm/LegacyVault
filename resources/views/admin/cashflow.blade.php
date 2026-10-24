@@ -3,7 +3,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- Header Laporan Cashflow (Tanpa Tab Button) -->
+    <!-- Header Laporan Cashflow -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
             <h1 class="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -136,7 +136,74 @@
         </form>
     </div>
 
-    <!-- Tabel Rincian Data Cashflow (Tetap menggunakan pagination) -->
+    <!-- ========================================== -->
+    <!-- BAGIAN 3 VISUALISASI GRAFIK (CHART.JS)     -->
+    <!-- ========================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        <!-- 1. Diagram Garis: Tren Pemasukan Harian (Lebar 2 Kolom di Desktop) -->
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-emerald-500"></i>
+                        <span>Tren Pemasukan dari Hari ke Hari</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Grafik pergerakan nominal transaksi yang disetujui</p>
+                </div>
+            </div>
+            <div class="relative h-64 w-full">
+                <canvas id="incomeLineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 2. Diagram Lingkaran: Status Pembayaran -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+            <div class="mb-4">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-amber-500"></i>
+                    <span>Rasio Status Pembayaran</span>
+                </h3>
+                <p class="text-[11px] text-slate-400">Perbandingan Menunggu, Approved & Rejected</p>
+            </div>
+            <div class="relative h-52 w-full flex items-center justify-center">
+                <canvas id="statusPieChart"></canvas>
+            </div>
+            <div class="grid grid-cols-3 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-center text-[11px]">
+                <div>
+                    <span class="text-amber-500 font-bold block">{{ $chartData['pie']['pending'] }}</span>
+                    <span class="text-slate-400">Menunggu</span>
+                </div>
+                <div>
+                    <span class="text-emerald-500 font-bold block">{{ $chartData['pie']['approved'] }}</span>
+                    <span class="text-slate-400">Approved</span>
+                </div>
+                <div>
+                    <span class="text-rose-500 font-bold block">{{ $chartData['pie']['rejected'] }}</span>
+                    <span class="text-slate-400">Rejected</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Diagram Batang: Perbandingan Bank BCA/BNI vs BRI (Full Width di Bawahnya) -->
+        <div class="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-sky-500"></i>
+                        <span>Perbandingan Pemasukan Bank (BCA/BNI vs BRI)</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Perbandingan total nominal rupiah yang masuk ke masing-masing rekening</p>
+                </div>
+            </div>
+            <div class="relative h-56 w-full">
+                <canvas id="bankBarChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tabel Rincian Data Cashflow -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
@@ -270,4 +337,153 @@
     </div>
 
 </div>
+
+<!-- Load Chart.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const textColor = '#94a3b8';
+    const gridColor = 'rgba(148, 163, 184, 0.1)';
+
+    // 1. Diagram Garis: Tren Pemasukan Harian
+    const lineCtx = document.getElementById('incomeLineChart').getContext('2d');
+    const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 240);
+    lineGradient.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+    lineGradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+    new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: @json($chartData['line']['labels']),
+            datasets: [{
+                label: 'Total Pemasukan (Rp)',
+                data: @json($chartData['line']['data']),
+                borderColor: '#10b981',
+                backgroundColor: lineGradient,
+                borderWidth: 2.5,
+                pointBackgroundColor: '#10b981',
+                pointRadius: 4,
+                fill: true,
+                tension: 0.35
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ' Rp ' + Number(context.raw).toLocaleString('id-ID');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: textColor, font: { size: 11 } },
+                    grid: { color: gridColor }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: textColor,
+                        font: { size: 11 },
+                        callback: function(value) {
+                            return 'Rp ' + Number(value).toLocaleString('id-ID');
+                        }
+                    },
+                    grid: { color: gridColor }
+                }
+            }
+        }
+    });
+
+    // 2. Diagram Lingkaran: Status Pembayaran (Menunggu, Approved, Rejected)
+    const pieCtx = document.getElementById('statusPieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Menunggu Verifikasi', 'Approved (Disetujui)', 'Rejected (Ditolak)'],
+            datasets: [{
+                data: [
+                    {{ $chartData['pie']['pending'] }},
+                    {{ $chartData['pie']['approved'] }},
+                    {{ $chartData['pie']['rejected'] }}
+                ],
+                backgroundColor: ['#f59e0b', '#10b981', '#f43f5e'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: textColor, font: { size: 11 }, boxWidth: 12 }
+                }
+            }
+        }
+    });
+
+    // 3. Diagram Batang: Perbandingan Bank BCA/BNI vs BRI
+    const barCtx = document.getElementById('bankBarChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Rekening BCA / BNI', 'Rekening Bank BRI'],
+            datasets: [{
+                label: 'Nominal Pemasukan (Rp)',
+                data: [
+                    {{ $chartData['bar']['bca_bni'] }},
+                    {{ $chartData['bar']['bri'] }}
+                ],
+                backgroundColor: [
+                    'rgba(14, 165, 233, 0.75)', // Biru (BCA/BNI)
+                    'rgba(245, 158, 11, 0.75)'  // Kuning/Amber (BRI)
+                ],
+                borderColor: ['#0ea5e9', '#f59e0b'],
+                borderWidth: 1.5,
+                borderRadius: 10,
+                maxBarThickness: 75
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ' Rp ' + Number(context.raw).toLocaleString('id-ID');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: textColor, font: { size: 12, weight: 'bold' } },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: textColor,
+                        font: { size: 11 },
+                        callback: function(value) {
+                            return 'Rp ' + Number(value).toLocaleString('id-ID');
+                        }
+                    },
+                    grid: { color: gridColor }
+                }
+            }
+        }
+    });
+});
+</script>
 @endsection
