@@ -1,7 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="{ selectedPlanId: null, selectedPlanName: '', selectedPlanPrice: 0 }" class="space-y-10">
+<div x-data="{ 
+    selectedPlanId: null, 
+    selectedPlanName: '', 
+    selectedPlanPrice: 0,
+    selectedBank: 'BCA',
+    copied: false,
+    banks: {
+        'BCA': {
+            name: 'BCA (Bank Central Asia)',
+            number: '8810-2938-44',
+            rawNumber: '8810293844',
+            holder: 'PT Brankas Warisan Digital'
+        },
+        'BRI': {
+            name: 'BRI (Bank Rakyat Indonesia)',
+            number: '5932 0103 8807 531',
+            rawNumber: '593201038807531',
+            holder: 'PT Brankas Warisan Digital'
+        }
+    },
+    copyRekening() {
+        navigator.clipboard.writeText(this.banks[this.selectedBank].rawNumber);
+        this.copied = true;
+        setTimeout(() => this.copied = false, 2000);
+    }
+}" class="space-y-10">
 
     <!-- Header Pricing -->
     <div class="text-center max-w-2xl mx-auto space-y-2">
@@ -66,12 +91,12 @@
                             <span>Relasi Multi-Ahli Waris</span>
                         </li>
                         <li class="flex items-center gap-2">
-    <i class="fa-solid fa-check text-emerald-500"></i>
-    <span>
-        Interval Sakelar: 
-        <strong>{{ ($plan->slug === 'free') ? '3 Bulan, 6 Bulan, & 1 Tahun' : 'Bisa per 1 Bulan (Realtime)' }}</strong>
-    </span>
-</li>
+                            <i class="fa-solid fa-check text-emerald-500"></i>
+                            <span>
+                                Interval Sakelar: 
+                                <strong>{{ ($plan->slug === 'free') ? '3 Bulan, 6 Bulan, & 1 Tahun' : 'Bisa per 1 Bulan (Realtime)' }}</strong>
+                            </span>
+                        </li>
                     </ul>
                 </div>
 
@@ -115,16 +140,59 @@
                 </button>
             </div>
 
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
-                <div class="flex justify-between">
+            <!-- Pilihan Metode Bank (BCA / BRI) -->
+            <div class="space-y-2.5">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Pilih Rekening Tujuan Transfer:
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button"
+                            @click="selectedBank = 'BCA'; copied = false"
+                            :class="selectedBank === 'BCA' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:border-slate-300'"
+                            class="p-3 rounded-xl border text-left transition flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold">Bank BCA</div>
+                            <div class="text-[10px] opacity-75 font-mono">8810-2938-44</div>
+                        </div>
+                        <i class="fa-solid fa-building-columns text-base" :class="selectedBank === 'BCA' ? 'text-emerald-500' : 'text-slate-400'"></i>
+                    </button>
+
+                    <button type="button"
+                            @click="selectedBank = 'BRI'; copied = false"
+                            :class="selectedBank === 'BRI' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/20' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:border-slate-300'"
+                            class="p-3 rounded-xl border text-left transition flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-extrabold">Bank BRI</div>
+                            <div class="text-[10px] opacity-75 font-mono">5932 0103 8807 531</div>
+                        </div>
+                        <i class="fa-solid fa-building-columns text-base" :class="selectedBank === 'BRI' ? 'text-emerald-500' : 'text-slate-400'"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detail Rekening yang Dipilih -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs">
+                <div class="flex justify-between items-center">
                     <span class="text-slate-500 dark:text-slate-400">Bank Tujuan:</span>
-                    <span class="font-bold text-slate-800 dark:text-white">BCA (Bank Central Asia)</span>
+                    <span class="font-bold text-slate-800 dark:text-white" x-text="banks[selectedBank].name"></span>
                 </div>
-                <div class="flex justify-between">
+                <div class="flex justify-between items-center">
                     <span class="text-slate-500 dark:text-slate-400">Nomor Rekening:</span>
-                    <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">8810-2938-44 (a.n PT Brankas Warisan Digital)</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm" x-text="banks[selectedBank].number"></span>
+                        <button type="button" 
+                                @click="copyRekening()" 
+                                class="px-2 py-0.5 rounded bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 text-[10px] font-bold transition flex items-center gap-1">
+                            <i class="fa-regular" :class="copied ? 'fa-circle-check' : 'fa-copy'"></i>
+                            <span x-text="copied ? 'Tersalin' : 'Salin'"></span>
+                        </button>
+                    </div>
                 </div>
-                <div class="flex justify-between">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500 dark:text-slate-400">Atas Nama:</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-300" x-text="banks[selectedBank].holder"></span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-800">
                     <span class="text-slate-500 dark:text-slate-400">Nominal Harus Ditransfer:</span>
                     <span class="font-bold text-amber-600 dark:text-amber-400 text-sm">Rp <span x-text="selectedPlanPrice"></span></span>
                 </div>
@@ -136,9 +204,9 @@
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                        <i class="fa-solid fa-user-check mr-1 text-emerald-500"></i> Nama Pengirim di Rekening
+                        <i class="fa-solid fa-user-check mr-1 text-emerald-500"></i> Nama Pengirim & Bank Asal
                     </label>
-                    <input type="text" name="bank_sender_name" required placeholder="Contoh: Budi Santoso"
+                    <input type="text" name="bank_sender_name" required :placeholder="'Contoh: Budi Santoso (Transfer ke ' + selectedBank + ')'"
                            class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
                 </div>
 
@@ -186,10 +254,10 @@
                             <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">{{ $pay->plan->name }}</td>
                             <td class="py-3 px-4 text-slate-700 dark:text-slate-300">Rp {{ number_format($pay->amount, 0, ',', '.') }}</td>
                             <td class="py-3 px-4">
-                           <a href="{{ Storage::disk('supabase_proofs')->url($pay->proof_image_path) }}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-medium">
-                                <i class="fa-solid fa-file-image"></i>
-                                <span>Lihat Struk</span>
-                            </a>
+                                <a href="{{ Storage::disk('supabase_proofs')->url($pay->proof_image_path) }}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-medium">
+                                    <i class="fa-solid fa-file-image"></i>
+                                    <span>Lihat Struk</span>
+                                </a>
                             </td>
                             <td class="py-3 px-4">
                                 @if($pay->status === 'pending')
