@@ -13,11 +13,11 @@ class SubscriptionController extends Controller
 {
     public function index(Request $request): View
     {
-    //     dd(
-    //     \App\Models\Payment::latest()->take(10)->get([
-    //         'id', 'amount', 'status', 'bank_sender_name', 'admin_note', 'created_at'
-    //     ])->toArray()
-    // );
+        dd(
+        \App\Models\Payment::latest()->take(10)->get([
+            'id', 'amount', 'status', 'bank_sender_name', 'admin_note', 'created_at'
+        ])->toArray()
+    );
         $user = $request->user();
 
         return view('subscriptions.pricing', [
@@ -29,11 +29,11 @@ class SubscriptionController extends Controller
 
     public function checkout(Request $request): RedirectResponse
     {
-        dd([
-        'bank_destination' => $request->input('bank_destination'),
-        'bank_sender_name' => $request->input('bank_sender_name'),
-        'all_request'      => $request->all(),
-    ]);
+    //     dd([
+    //     'bank_destination' => $request->input('bank_destination'),
+    //     'bank_sender_name' => $request->input('bank_sender_name'),
+    //     'all_request'      => $request->all(),
+    // ]);
         $validated = $request->validate([
             'plan_id' => 'required|exists:plans,id',
             'bank_destination' => 'nullable|string',
