@@ -72,26 +72,44 @@ class DeadManSwitchController extends Controller
     /**
      * 3. Tombol "Simulasi Email Pengingat" (Kirim Email Beneran via API)
      */
-    public function sendSimulationEmail(Request $request): RedirectResponse
+   public function sendSimulationEmail(Request $request): RedirectResponse
     {
         $user = $request->user();
 
-        $sent = $this->sendWarningEmailViaApi($user);
+        $confirmUrl = URL::temporarySignedRoute(
+            'switch.email-confirm',
+            now()->addHours(24),
+            ['user' => $user->id]
+        );
+
+        $htmlContent = view('emails.check-in-warning', [
+            'user' => $user,
+            'confirmUrl' => $confirmUrl,
+        ])->render();
+
+        // Tambahkan waktu (H:i:s) agar Gmail tidak mengelompokkan ke 1 thread lama
+        $timestamp = now()->timezone('Asia/Jakarta')->format('H:i:s');
+        $subject = "⚠️ [PENTING] Konfirmasi Bahwa Anda Masih Sehat ({$timestamp}) - Warisan Digital";
+
+        $sent = EmailApiService::send(
+            $user->email,
+            $user->name,
+            $subject,
+            $htmlContent
+        );
 
         if (!$sent) {
-            return back()->with('error', 'Gagal mengirim email via API. Pastikan BREVO_API_KEY dan MAIL_FROM_ADDRESS di .env sudah sesuai dengan akun Brevo Anda.');
+            return back()->with('error', 'Gagal mengirim email via Brevo. Periksa log atau environment variables Vercel.');
         }
 
-        // Set bahwa email peringatan sudah terkirim & aktifkan hitung mundur menuju menit ke-10
         $user->update([
             'warning_sent_at' => now(),
-            'next_check_in_deadline' => now()->subSeconds(1),
             'inheritance_dispatched_at' => null,
         ]);
 
-        ActivityLog::record('SIMULATION_EMAIL_SENT', "Email peringatan konfirmasi sehat berhasil dikirim via API ke {$user->email}");
+        ActivityLog::record('SIMULATION_EMAIL_SENT', "Email konfirmasi sehat dikirim ke {$user->email}");
 
-        return back()->with('success', "Email konfirmasi sehat telah dikirim ke {$user->email}! Silakan cek Inbox/Spam. Jika dalam 5 menit ke depan tidak dikonfirmasi, aset akan dikirim ke ahli waris.");
+        return back()->with('success', "Email konfirmasi baru berhasil dikirim ke {$user->email} pada {$timestamp}! Silakan cek Inbox.");
     }
 
     /**
