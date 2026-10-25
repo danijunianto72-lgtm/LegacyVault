@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
@@ -12,8 +12,8 @@ class AdminCashflowController extends Controller
 {
     public function index(Request $request)
     {
-        $period = $request->get('period', 'all'); // today, week, month, all (untuk Tabel & Card atas)
-        $bankFilter = $request->get('bank', '');  // BCA_BNI, BRI
+        $period = $request->get('period', 'all');
+        $bankFilter = $request->get('bank', '');
         $search = $request->get('search', '');
 
         $hasSenderCol = Schema::hasColumn('payments', 'bank_sender_name');
@@ -28,7 +28,6 @@ class AdminCashflowController extends Controller
             if ($p === 'today') {
                 return $collection->filter(fn($item) => $item->created_at->isToday());
             } elseif ($p === 'week') {
-                // 7 Hari Terakhir
                 return $collection->filter(fn($item) => $item->created_at->gte(now()->subDays(6)->startOfDay()));
             } elseif ($p === 'month') {
                 return $collection->filter(fn($item) => $item->created_at->isCurrentMonth() && $item->created_at->isCurrentYear());
@@ -36,8 +35,9 @@ class AdminCashflowController extends Controller
             return $collection;
         };
 
-        // Ambil seluruh transaksi untuk kalkulasi multi-periode di tiap grafik
+        // Ambil data transaksi
         $allPaymentsRaw = Payment::with('plan')->orderBy('created_at')->get();
+        // HANYA MENGHITUNG YANG SUDAH APPROVED
         $allApprovedRaw = $allPaymentsRaw->where('status', 'approved');
 
         $chartPeriods = ['today', 'week', 'month', 'all'];
@@ -51,28 +51,27 @@ class AdminCashflowController extends Controller
             $periodAll = $filterByPeriod($allPaymentsRaw, $p);
             $periodApproved = $filterByPeriod($allApprovedRaw, $p);
 
-            // 1. Data Pie Chart per periode
+            // 1. Pie Chart
             $chartData['pie'][$p] = [
                 'pending' => $periodAll->where('status', 'pending')->count(),
                 'approved' => $periodAll->where('status', 'approved')->count(),
                 'rejected' => $periodAll->where('status', 'rejected')->count(),
             ];
 
-            // 2. Data Bar Chart per periode
+            // 2. Bar Chart
             $briInPeriod = $periodApproved->filter($isBriPayment)->sum('amount');
             $totalInPeriod = $periodApproved->sum('amount');
             $chartData['bar'][$p] = [
-                'bca_bni' => $totalInPeriod - $briInPeriod,
+                'bca_bni' => max(0, $totalInPeriod - $briInPeriod),
                 'bri' => $briInPeriod,
             ];
 
-            // 3. Data Line Chart per periode (lengkap dengan detail saat titik diklik)
+            // 3. Line Chart
             $labels = [];
             $values = [];
             $details = [];
 
             if ($p === 'today') {
-                // Hari ini dibagi per jam yang ada transaksinya (atau minimal tampilkan hari ini)
                 $groupedHour = $periodApproved->groupBy(fn($item) => $item->created_at->format('H:00'));
                 if ($groupedHour->isEmpty()) {
                     $labels[] = today()->format('d M Y') . ' (Hari Ini)';
@@ -86,14 +85,13 @@ class AdminCashflowController extends Controller
                         $values[] = $totVal;
                         $details[] = [
                             'count' => $items->count(),
-                            'bca_bni' => $totVal - $briVal,
+                            'bca_bni' => max(0, $totVal - $briVal),
                             'bri' => $briVal,
                             'full_date' => today()->format('d M Y') . ' - ' . $hour . ' WIB',
                         ];
                     }
                 }
             } elseif ($p === 'week') {
-                // 7 Hari Terakhir
                 $groupedDay = $periodApproved->groupBy(fn($item) => $item->created_at->format('Y-m-d'));
                 for ($i = 6; $i >= 0; $i--) {
                     $d = now()->subDays($i);
@@ -106,13 +104,12 @@ class AdminCashflowController extends Controller
                     $values[] = $totVal;
                     $details[] = [
                         'count' => $items->count(),
-                        'bca_bni' => $totVal - $briVal,
+                        'bca_bni' => max(0, $totVal - $briVal),
                         'bri' => $briVal,
-                        'full_date' => $d->translatedFormat('l, d M Y'),
+                        'full_date' => $d->format('d M Y'),
                     ];
                 }
             } elseif ($p === 'month') {
-                // Bulan Ini (Tanggal 1 s/d akhir bulan)
                 $groupedDay = $periodApproved->groupBy(fn($item) => $item->created_at->format('Y-m-d'));
                 $daysInMonth = now()->daysInMonth;
                 for ($i = 1; $i <= $daysInMonth; $i++) {
@@ -126,13 +123,12 @@ class AdminCashflowController extends Controller
                     $values[] = $totVal;
                     $details[] = [
                         'count' => $items->count(),
-                        'bca_bni' => $totVal - $briVal,
+                        'bca_bni' => max(0, $totVal - $briVal),
                         'bri' => $briVal,
                         'full_date' => $d->format('d F Y'),
                     ];
                 }
             } else {
-                // Semua Waktu
                 $groupedDay = $periodApproved->groupBy(fn($item) => $item->created_at->format('Y-m-d'));
                 if ($groupedDay->isEmpty()) {
                     for ($i = 6; $i >= 0; $i--) {
@@ -151,7 +147,7 @@ class AdminCashflowController extends Controller
                         $values[] = $totVal;
                         $details[] = [
                             'count' => $items->count(),
-                            'bca_bni' => $totVal - $briVal,
+                            'bca_bni' => max(0, $totVal - $briVal),
                             'bri' => $briVal,
                             'full_date' => $d->format('d F Y'),
                         ];
@@ -167,7 +163,7 @@ class AdminCashflowController extends Controller
         }
 
         // ========================================================
-        // QUERY UNTUK CARD ATAS & TABEL BAWAH (Mengikuti Filter Utama)
+        // QUERY UNTUK CARD ATAS & TABEL BAWAH
         // ========================================================
         $baseQuery = Payment::with(['user.activeSubscription.plan', 'user.subscription.plan', 'plan'])
             ->where('status', 'approved');
@@ -200,7 +196,7 @@ class AdminCashflowController extends Controller
         $briIncome = $briCollection->sum('amount');
         $briCount = $briCollection->count();
 
-        $bcaBniIncome = $totalIncome - $briIncome;
+        $bcaBniIncome = max(0, $totalIncome - $briIncome);
         $bcaBniCount = $allApprovedInTablePeriod->count() - $briCount;
 
         if ($bankFilter === 'BRI') {
