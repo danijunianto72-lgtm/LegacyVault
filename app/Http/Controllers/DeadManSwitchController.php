@@ -72,7 +72,7 @@ class DeadManSwitchController extends Controller
     /**
      * 3. Tombol "Simulasi Email Pengingat" (Kirim Email Beneran via API)
      */
-public function sendSimulationEmail(Request $request): RedirectResponse
+public function sendSimulationEmail(Request $request)
     {
         $user = $request->user();
 
@@ -90,28 +90,49 @@ public function sendSimulationEmail(Request $request): RedirectResponse
         $timestamp = now()->timezone('Asia/Jakarta')->format('H:i:s');
         $subject = "⚠️ [PENTING] Konfirmasi Bahwa Anda Masih Sehat ({$timestamp}) - Warisan Digital";
 
-        $sent = EmailApiService::send(
-            $user->email,
-            $user->name,
-            $subject,
-            $htmlContent
-        );
+        // Eksekusi kirim via Brevo API secara langsung & dump hasilnya
+        $apiKey = env('BREVO_API_KEY');
+        $senderEmail = env('MAIL_FROM_ADDRESS');
+        $senderName = env('MAIL_FROM_NAME', 'Brankas Warisan Digital');
 
-        if (!$sent) {
-            return back()->with('error', 'Gagal mengirim email via Brevo. Silakan cek file log Laravel atau pastikan BREVO_API_KEY di Vercel sudah aktif.');
+        $payload = [
+            'sender' => [
+                'name' => $senderName,
+                'email' => trim((string)$senderEmail),
+            ],
+            'to' => [
+                [
+                    'email' => trim((string)$user->email),
+                    'name' => trim((string)$user->name),
+                ]
+            ],
+            'subject' => $subject,
+            'htmlContent' => $htmlContent,
+        ];
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(15)->withHeaders([
+                'accept' => 'application/json',
+                'api-key' => trim((string)$apiKey),
+                'content-type' => 'application/json',
+            ])->post('https://api.brevo.com/v3/smtp/email', $payload);
+
+            // Tampilkan hasil respons Brevo ke layar
+            dd([
+                'status_code' => $response->status(),
+                'is_successful' => $response->successful(),
+                'response_body' => $response->json() ?? $response->body(),
+                'api_key_used' => substr((string)$apiKey, 0, 10) . '...',
+                'sender_email_used' => $senderEmail,
+                'recipient_target' => $user->email,
+            ]);
+        } catch (\Throwable $e) {
+            dd([
+                'error_exception' => $e->getMessage(),
+                'trace' => $e->getFile() . ':' . $e->getLine(),
+            ]);
         }
-
-        // Catat waktu peringatan dikirim
-        $user->update([
-            'warning_sent_at' => now(),
-            'inheritance_dispatched_at' => null,
-        ]);
-
-        ActivityLog::record('SIMULATION_EMAIL_SENT', "Email konfirmasi sehat dikirim ke {$user->email}");
-
-        return back()->with('success', "Email konfirmasi berhasil dikirim ke {$user->email} pada {$timestamp}! Cek Inbox atau folder Spam.");
     }
-
     /**
      * Helper: Kirim Aset ke Email & WhatsApp Seluruh Ahli Waris
      */
