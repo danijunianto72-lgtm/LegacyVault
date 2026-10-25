@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Log;
 
 class EmailApiService
 {
+    /**
+     * Kirim email otomatis via Brevo API
+     */
     public static function send(string $toEmail, string $toName, string $subject, string $htmlContent): bool
     {
         $apiKey = env('BREVO_API_KEY');
@@ -14,36 +17,34 @@ class EmailApiService
         $senderName = env('MAIL_FROM_NAME', 'Brankas Warisan Digital');
 
         if (empty($apiKey) || empty($senderEmail)) {
-            Log::error('BREVO_API_KEY atau MAIL_FROM_ADDRESS belum disetel.');
+            Log::error('BREVO_API_KEY atau MAIL_FROM_ADDRESS belum disetel di environment.');
             return false;
         }
 
         try {
-            $response = Http::timeout(10)->withHeaders([
-                'accept' => 'application/json',
-                'api-key' => $apiKey,
-                'content-type' => 'application/json',
-            ])->post('https://api.brevo.com/v3/smtp/email', [
+            $payload = [
                 'sender' => [
                     'name' => $senderName,
-                    'email' => $senderEmail,
+                    'email' => trim($senderEmail),
                 ],
                 'to' => [
                     [
-                        'email' => $toEmail,
-                        'name' => $toName ?: $toEmail,
+                        'email' => trim($toEmail),
+                        'name' => !empty(trim($toName)) ? trim($toName) : trim($toEmail),
                     ]
                 ],
                 'subject' => $subject,
                 'htmlContent' => $htmlContent,
-                // Matikan link tracking Brevo agar tautan asli tidak dibungkus ke sendibt2.com
-                'headers' => [
-                    'X-Mailin-Custom' => '{"disable_click_tracking": true}'
-                ]
-            ]);
+            ];
+
+            $response = Http::timeout(15)->withHeaders([
+                'accept' => 'application/json',
+                'api-key' => trim($apiKey),
+                'content-type' => 'application/json',
+            ])->post('https://api.brevo.com/v3/smtp/email', $payload);
 
             if ($response->failed()) {
-                Log::error('Brevo API Error: ' . $response->body());
+                Log::error('Brevo API Error Status (' . $response->status() . '): ' . $response->body());
                 return false;
             }
 

@@ -72,7 +72,7 @@ class DeadManSwitchController extends Controller
     /**
      * 3. Tombol "Simulasi Email Pengingat" (Kirim Email Beneran via API)
      */
-   public function sendSimulationEmail(Request $request): RedirectResponse
+public function sendSimulationEmail(Request $request): RedirectResponse
     {
         $user = $request->user();
 
@@ -87,7 +87,6 @@ class DeadManSwitchController extends Controller
             'confirmUrl' => $confirmUrl,
         ])->render();
 
-        // Tambahkan waktu (H:i:s) agar Gmail tidak mengelompokkan ke 1 thread lama
         $timestamp = now()->timezone('Asia/Jakarta')->format('H:i:s');
         $subject = "⚠️ [PENTING] Konfirmasi Bahwa Anda Masih Sehat ({$timestamp}) - Warisan Digital";
 
@@ -99,9 +98,10 @@ class DeadManSwitchController extends Controller
         );
 
         if (!$sent) {
-            return back()->with('error', 'Gagal mengirim email via Brevo. Periksa log atau environment variables Vercel.');
+            return back()->with('error', 'Gagal mengirim email via Brevo. Silakan cek file log Laravel atau pastikan BREVO_API_KEY di Vercel sudah aktif.');
         }
 
+        // Catat waktu peringatan dikirim
         $user->update([
             'warning_sent_at' => now(),
             'inheritance_dispatched_at' => null,
@@ -109,7 +109,59 @@ class DeadManSwitchController extends Controller
 
         ActivityLog::record('SIMULATION_EMAIL_SENT', "Email konfirmasi sehat dikirim ke {$user->email}");
 
-        return back()->with('success', "Email konfirmasi baru berhasil dikirim ke {$user->email} pada {$timestamp}! Silakan cek Inbox.");
+        return back()->with('success', "Email konfirmasi berhasil dikirim ke {$user->email} pada {$timestamp}! Cek Inbox atau folder Spam.");
+    }
+
+    /**
+     * Helper: Kirim Aset ke Email & WhatsApp Seluruh Ahli Waris
+     */
+    protected function dispatchAssetsToBeneficiaries(User $user): int
+    {
+        $beneficiaries = $user->beneficiaries()->get();
+        $allAssets = $user->assets()->get();
+        $count = 0;
+
+        foreach ($beneficiaries as $ben) {
+            // Ambil aset yang dialokasikan ke ahli waris ini (atau seluruh aset jika belum ditentukan)
+            $benAssets = $allAssets->filter(function ($asset) use ($ben) {
+                return empty($asset->beneficiary_id) || (int) $asset->beneficiary_id === (int) $ben->id;
+            });
+
+            if ($benAssets->isEmpty()) {
+                $benAssets = $allAssets;
+            }
+
+            if ($benAssets->isEmpty()) {
+                continue;
+            }
+
+            // 1. Eksekusi Kirim ke Email Ahli Waris
+            $benEmail = trim((string) $ben->email);
+            if (!empty($benEmail) && filter_var($benEmail, FILTER_VALIDATE_EMAIL)) {
+                $htmlRelease = view('emails.beneficiary-release', [
+                    'owner' => $user,
+                    'beneficiary' => $ben,
+                    'assets' => $benAssets,
+                ])->render();
+
+                $mailSubject = "🔐 Penyerahan Aset Warisan Digital dari {$user->name}";
+                EmailApiService::send($benEmail, $ben->name, $mailSubject, $htmlRelease);
+            }
+
+            // 2. Eksekusi Kirim ke WhatsApp Ahli Waris
+            if (!empty(trim((string) $ben->phone))) {
+                $this->sendWhatsAppToBeneficiary($user, $ben, $benAssets);
+            }
+
+            $count++;
+        }
+
+        ActivityLog::record(
+            'INHERITANCE_DISPATCHED',
+            "Sakelar otomatis berhasil menyerahkan aset ke {$count} ahli waris melalui Email & WhatsApp."
+        );
+
+        return $count;
     }
 
     /**
