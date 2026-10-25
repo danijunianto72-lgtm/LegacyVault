@@ -319,4 +319,5 @@ class DeadManSwitchController extends Controller
 
         return back()->with('success', "Interval check-in berhasil diubah menjadi {$days} hari.");
     }
+    
 }
