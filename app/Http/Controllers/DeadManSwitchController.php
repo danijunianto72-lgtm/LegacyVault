@@ -66,7 +66,7 @@ class DeadManSwitchController extends Controller
         return redirect('/dashboard')->with('success', 'Konfirmasi sehat via Email berhasil! Timer dikembalikan ke setelan normal.');
     }
 
-    public function sendSimulationEmail(Request $request)
+    public function sendSimulationEmail(Request $request): RedirectResponse
     {
         $user = $request->user();
 
@@ -84,46 +84,26 @@ class DeadManSwitchController extends Controller
         $timestamp = now()->timezone('Asia/Jakarta')->format('H:i:s');
         $subject = "⚠️ [PENTING] Konfirmasi Bahwa Anda Masih Sehat ({$timestamp}) - Warisan Digital";
 
-        $apiKey = env('BREVO_API_KEY');
-        $senderEmail = env('MAIL_FROM_ADDRESS');
-        $senderName = env('MAIL_FROM_NAME', 'Brankas Warisan Digital');
+        $sent = EmailApiService::send(
+            $user->email,
+            $user->name,
+            $subject,
+            $htmlContent
+        );
 
-        $payload = [
-            'sender' => [
-                'name' => $senderName,
-                'email' => trim((string)$senderEmail),
-            ],
-            'to' => [
-                [
-                    'email' => trim((string)$user->email),
-                    'name' => trim((string)$user->name),
-                ]
-            ],
-            'subject' => $subject,
-            'htmlContent' => $htmlContent,
-        ];
-
-        try {
-            $response = Http::timeout(15)->withHeaders([
-                'accept' => 'application/json',
-                'api-key' => trim((string)$apiKey),
-                'content-type' => 'application/json',
-            ])->post('https://api.brevo.com/v3/smtp/email', $payload);
-
-            dd([
-                'status_code' => $response->status(),
-                'is_successful' => $response->successful(),
-                'response_body' => $response->json() ?? $response->body(),
-                'api_key_used' => substr((string)$apiKey, 0, 10) . '...',
-                'sender_email_used' => $senderEmail,
-                'recipient_target' => $user->email,
-            ]);
-        } catch (\Throwable $e) {
-            dd([
-                'error_exception' => $e->getMessage(),
-                'trace' => $e->getFile() . ':' . $e->getLine(),
-            ]);
+        if (!$sent) {
+            return back()->with('error', 'Gagal mengirim email via Brevo. Silakan periksa konfigurasi.');
         }
+
+        // Mulai hitung mundur 5 menit menuju pelepasan aset ke ahli waris (total 10 menit)
+        $user->update([
+            'warning_sent_at' => now(),
+            'inheritance_dispatched_at' => null,
+        ]);
+
+        ActivityLog::record('SIMULATION_EMAIL_SENT', "Email konfirmasi sehat berhasil dikirim ke {$user->email}");
+
+        return back()->with('success', "Email konfirmasi telah dikirim ke {$user->email}! Jika tidak ada di Kotak Masuk, periksa folder SPAM atau tab Promosi/Updates.");
     }
 
     public function checkTimerStatus(Request $request): JsonResponse
