@@ -81,8 +81,9 @@ class DeadManSwitchController extends Controller
             'confirmUrl' => $confirmUrl,
         ])->render();
 
-        $timestamp = now()->timezone('Asia/Jakarta')->format('H:i:s');
-        $subject = "⚠️ [PENTING] Konfirmasi Bahwa Anda Masih Sehat ({$timestamp}) - Warisan Digital";
+        $randomCode = strtoupper(substr(md5(uniqid()), 0, 5));
+$timestamp = now()->timezone('Asia/Jakarta')->format('H:i:s');
+$subject = "Peringatan Konfirmasi Sehat [#{$randomCode} - {$timestamp}]";
 
         $sent = EmailApiService::send(
             $user->email,
