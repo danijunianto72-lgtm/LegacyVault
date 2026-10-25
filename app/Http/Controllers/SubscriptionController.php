@@ -13,11 +13,11 @@ class SubscriptionController extends Controller
 {
     public function index(Request $request): View
     {
-        dd(
-        \App\Models\Payment::latest()->take(10)->get([
-            'id', 'amount', 'status', 'bank_sender_name', 'admin_note', 'created_at'
-        ])->toArray()
-    );
+    //     dd(
+    //     \App\Models\Payment::latest()->take(10)->get([
+    //         'id', 'amount', 'status', 'bank_sender_name', 'admin_note', 'created_at'
+    //     ])->toArray()
+    // );
         $user = $request->user();
 
         return view('subscriptions.pricing', [
