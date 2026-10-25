@@ -20,6 +20,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         deleteModalOpen: false,
         showAddAssetModal: false,
         noBeneficiaryModalOpen: false,
+        
         selectedAsset: {
             id: null,
             title: '',
@@ -170,173 +171,49 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         $initialDeadline = $daysRemaining . ' Hari Lagi (' . $deadline->translatedFormat('d F Y') . ')';
     @endphp
 
-    <div x-data="{ 
-            intervalModalOpen: false,
-            isCheckingIn: false,
-            lastCheckInText: '{{ $initialLastCheck }}',
-            deadlineText: '{{ $initialDeadline }}',
+    /**
+     * Merespon tombol Konfirmasi Sehat via fetch() AJAX di Blade kamu
+     */
+    public function checkinAjax(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $user->confirmCheckIn();
+        $user->refresh();
 
-            async submitCheckIn() {
-                this.isCheckingIn = true;
-                try {
-                    const response = await fetch('{{ route('switch.checkin') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        }
-                    });
-                    const data = await response.json();
-                    if (response.ok && data.success) {
-                        this.lastCheckInText = data.last_check_in;
-                        this.deadlineText = data.deadline_text;
-                    }
-                } catch (e) {
-                    console.error('Gagal memperbarui status check-in:', e);
-                } finally {
-                    this.isCheckingIn = false;
-                }
-            }
-         }" 
-         class="p-6 rounded-2xl bg-white dark:bg-[#0b1329] border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl space-y-6 transition">
-        
-        <!-- Baris Atas: Status & Tombol Aksi -->
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-            <div class="space-y-1.5 max-w-2xl">
-                <div class="flex items-center gap-2.5">
-                    <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse"></span>
-                    <h2 class="text-base font-bold text-slate-900 dark:text-white tracking-wide">
-                        Status Sakelar Otomatis: <span class="text-emerald-600 dark:text-emerald-400">AKTIF & SEHAT</span>
-                    </h2>
-                </div>
-                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Sistem pengingat otomatis dikirim langsung via <strong class="text-slate-900 dark:text-slate-200">Email & WhatsApp</strong> tanpa perlu sering login. Cukup klik tautan konfirmasi di pesan email Anda untuk memperbarui timer!
-                </p>
-            </div>
+        ActivityLog::record('CHECK_IN_CONFIRM', 'Pengguna mengonfirmasi kondisi sehat (Manual Realtime).');
 
-            <!-- Container Tombol Sejajar di Android/Mobile -->
-            <div class="grid grid-cols-2 gap-2.5 sm:flex sm:items-center w-full lg:w-auto shrink-0">
-                <!-- Tombol Konfirmasi Saya Sehat Realtime -->
-                <button type="button" 
-                        @click="submitCheckIn()"
-                        :disabled="isCheckingIn"
-                        class="w-full sm:w-auto px-3.5 sm:px-5 py-3 rounded-xl bg-emerald-600 dark:bg-emerald-500 hover:bg-emerald-500 text-white dark:text-slate-950 font-bold text-xs transition shadow-lg shadow-emerald-600/20 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2.5 disabled:opacity-60 text-center">
-                    <i class="fa-solid" :class="isCheckingIn ? 'fa-spinner fa-spin' : 'fa-heart-pulse text-sm'"></i>
-                    <span class="leading-tight">
-                        <span x-text="isCheckingIn ? 'Memproses...' : 'Konfirmasi Sehat'"></span><br class="hidden sm:inline">
-                        <span class="font-normal text-[10px] opacity-90">(Manual)</span>
-                    </span>
-                </button>
+        $daysLeft = (int) now()->startOfDay()->diffInDays($user->next_check_in_deadline->copy()->startOfDay(), false);
 
-                <!-- Tombol Simulasi Kirim Email Pengingat -->
-                <form action="{{ route('switch.simulate') }}" method="POST" class="w-full sm:w-auto">
-                    @csrf
-                    <button type="submit" 
-                            class="w-full px-3.5 sm:px-5 py-3 rounded-xl bg-slate-100 dark:bg-[#0e1b38] hover:bg-slate-200 dark:hover:bg-[#13244c] border border-slate-300 dark:border-slate-700 text-emerald-700 dark:text-emerald-400 font-semibold text-xs transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2.5 text-center">
-                        <i class="fa-regular fa-envelope text-sm"></i>
-                        <span class="leading-tight">
-                            <span>Simulasi Email</span><br class="hidden sm:inline">
-                            <span class="text-[10px] text-slate-500 dark:text-slate-400">Pengingat</span>
-                        </span>
-                    </button>
-                </form>
-            </div>
-        </div>
+        return response()->json([
+            'success' => true,
+            'last_check_in' => $user->last_check_in_at->format('d M Y, H:i') . ' WIB',
+            'deadline_text' => "{$daysLeft} Hari Lagi (" . $user->next_check_in_deadline->format('d F Y') . ")",
+        ]);
+    }
 
-        <!-- Baris Bawah: 3 Kotak Indikator Waktu -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800/80">
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#070d1e] border border-slate-200 dark:border-slate-800/80 space-y-1">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400">Pengecekan Terakhir</div>
-                <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <span x-text="lastCheckInText"></span>
-                </div>
-            </div>
+    /**
+     * Menyimpan perubahan Interval Check-in dari Modal
+     */
+    public function updateInterval(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $allowed = $user->hasActiveSubscription() ? [30, 90, 180, 365] : [90, 180, 365];
 
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#070d1e] border border-slate-200 dark:border-slate-800/80 space-y-1">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400">Batas Waktu Pengingat Berikutnya</div>
-                <div class="text-sm font-bold text-amber-600 dark:text-amber-400">
-                    <span x-text="deadlineText"></span>
-                </div>
-            </div>
+        $validated = $request->validate([
+            'interval_days' => ['required', 'integer', \Illuminate\Validation\Rule::in($allowed)],
+        ]);
 
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#070d1e] border border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
-                <div class="space-y-1">
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400">Interval Rutin Check-in</div>
-                    <div class="text-sm font-bold text-slate-900 dark:text-white">
-                        @php
-                            $days = (int)(auth()->user()->check_in_interval_days ?: 180);
-                            $intervalText = match($days) {
-                                30 => '1 Bulan',
-                                90 => '3 Bulan',
-                                180 => '6 Bulan (Starter Plan)',
-                                365 => '1 Tahun',
-                                default => $days . ' Hari',
-                            };
-                        @endphp
-                        {{ $intervalText }}
-                    </div>
-                </div>
-                <button type="button" @click="intervalModalOpen = true" class="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 font-semibold transition">
-                    Ubah
-                </button>
-            </div>
-        </div>
+        $days = (int) $validated['interval_days'];
 
-        <!-- MODAL UBAH INTERVAL CHECK-IN -->
-        @php
-            $isPaidUser = auth()->user()->hasActiveSubscription();
-            $currentInterval = (int)(auth()->user()->check_in_interval_days ?: 180);
-        @endphp
+        $user->update([
+            'check_in_interval_days' => $days,
+            'next_check_in_deadline' => ($user->initial_test_done) ? now()->addDays($days) : $user->next_check_in_deadline,
+        ]);
 
-        <div x-show="intervalModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-            <div @click.away="intervalModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
-                        <span>Ubah Interval Check-in</span>
-                    </h3>
-                    <button @click="intervalModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+        ActivityLog::record('UPDATE_INTERVAL', "Mengubah interval check-in menjadi {$days} hari.");
 
-                <form action="{{ route('switch.interval') }}" method="POST" class="space-y-4">
-                    @csrf
-                    @method('PUT')
-                    <div>
-                        <label class="block text-xs text-slate-600 dark:text-slate-400 mb-1.5">Pilih Periode Pengingat:</label>
-                        <select name="interval_days" class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                            @if($isPaidUser)
-                                <option value="30" {{ $currentInterval === 30 ? 'selected' : '' }}>
-                                    ⚡ 1 Bulan (30 Hari) — Pro & Unlimited
-                                </option>
-                            @else
-                                <option value="" disabled class="text-slate-400">
-                                    🔒 1 Bulan (30 Hari) — Khusus Pro & Unlimited
-                                </option>
-                            @endif
-                            <option value="90" {{ $currentInterval === 90 ? 'selected' : '' }}>3 Bulan (90 Hari)</option>
-                            <option value="180" {{ ($currentInterval === 180 || !$currentInterval) ? 'selected' : '' }}>6 Bulan (180 Hari) - Rekomendasi</option>
-                            <option value="365" {{ $currentInterval === 365 ? 'selected' : '' }}>1 Tahun (365 Hari)</option>
-                        </select>
-                    </div>
-
-                    @if(!$isPaidUser)
-                        <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-700 dark:text-emerald-300 flex items-center justify-between">
-                            <span>Ingin check-in rutin per 1 bulan?</span>
-                            <a href="{{ route('pricing') }}" class="font-bold underline ml-1">Upgrade</a>
-                        </div>
-                    @endif
-
-                    <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                        <button type="button" @click="intervalModalOpen = false" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs">Batal</button>
-                        <button type="submit" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">Simpan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+        return back()->with('success', "Interval check-in berhasil diubah menjadi {$days} hari.");
+    }
 
     <!-- 4 KARTU STATISTIK RINGKASAN -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

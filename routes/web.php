@@ -25,6 +25,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+Route::get('/switch/confirm-email/{user}', [DeadManSwitchController::class, 'confirmFromEmail'])
+    ->name('switch.email-confirm')
+    ->middleware('signed');
+
 // Area Khusus Guest (Belum Login)
 Route::middleware('guest')->group(function () {
     // Halaman Login
@@ -76,8 +80,16 @@ Route::post('/logout', function (Request $request) {
 
 // Protected Area (Wajib Login)
 Route::middleware('auth')->group(function () {
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/assets/{asset}/request-extension', [AssetController::class, 'requestExtension'])->name('assets.requestExtension');
+   Route::post('/switch/checkin', [DeadManSwitchController::class, 'checkinAjax'])->name('switch.checkin');
+
+    // 2. Tombol Simulasi Email (sesuai route('switch.simulate') di Blade kamu)
+    Route::post('/switch/simulate', [DeadManSwitchController::class, 'sendSimulationEmail'])->name('switch.simulate');
+
+    // 3. Form Ubah Interval Check-in (sesuai route('switch.interval') di Blade kamu)
+    Route::put('/switch/interval', [DeadManSwitchController::class, 'updateInterval'])->name('switch.interval');
+
+    // 4. Endpoint Heartbeat Timer 5 Menit & 10 Menit
+    Route::get('/switch/status-check', [DeadManSwitchController::class, 'checkTimerStatus'])->name('switch.status-check');
     // Halaman Syarat Legalitas & Panduan Penggunaan (Onboarding)
     Route::get('/onboarding', function () {
         if (Auth::user()->isAdmin()) {

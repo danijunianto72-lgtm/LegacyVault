@@ -12,6 +12,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    // 1. Tambahkan di dalam array $fillable:
     protected $fillable = [
         'name',
         'email',
@@ -22,11 +23,15 @@ class User extends Authenticatable
         'next_check_in_deadline',
         'check_in_interval_days',
         'switch_status',
+        'initial_test_done',
+        'warning_sent_at',
+        'inheritance_dispatched_at',
         'gender',
         'birth_date',
         'avatar_url',
     ];
 
+    // 2. Tambahkan di dalam method casts():
     protected function casts(): array
     {
         return [
@@ -34,16 +39,14 @@ class User extends Authenticatable
             'password' => 'hashed',
             'last_check_in_at' => 'datetime',
             'next_check_in_deadline' => 'datetime',
+            'warning_sent_at' => 'datetime',
+            'inheritance_dispatched_at' => 'datetime',
+            'initial_test_done' => 'boolean',
             'birth_date' => 'date',
         ];
     }
 
-    public function getAgeAttribute(): ?int
-    {
-        return $this->birth_date ? $this->birth_date->age : null;
-    }
-
-    // Helper untuk mereset timer konfirmasi sehat
+    // 3. Perbarui method confirmCheckIn():
     public function confirmCheckIn(): void
     {
         $interval = $this->check_in_interval_days ?: 180;
@@ -51,6 +54,9 @@ class User extends Authenticatable
             'last_check_in_at' => now(),
             'next_check_in_deadline' => now()->addDays($interval),
             'switch_status' => 'active',
+            'initial_test_done' => true, // Tandai simulasi 5 menit sudah selesai
+            'warning_sent_at' => null,   // Reset status peringatan
+            'inheritance_dispatched_at' => null,
         ]);
     }
 
