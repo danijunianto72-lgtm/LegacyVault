@@ -20,7 +20,7 @@
             <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-xl shadow-inner">
                 <i class="fa-solid fa-vault"></i>
             </div>
-            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Masuk ke LegacyVault</h1>
+            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Masuk ke LegalcyVault</h1>
             <p class="text-xs text-slate-500 dark:text-slate-400">
                 Masukkan akun untuk mengelola brankas & wasiat Anda
             </p>

@@ -21,7 +21,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'LegacyVault - Digital Inheritance SaaS' }}</title>
+    <title>{{ $title ?? 'LegalcyVault - Digital Inheritance SaaS' }}</title>
 
     <!-- 1. SCRIPT ANTI-FLASH -->
     <script>
@@ -87,7 +87,7 @@
                             <i class="fa-solid fa-vault"></i>
                         </span>
                         <span x-show="!sidebarCollapsed" x-transition.opacity class="whitespace-nowrap lg:block">
-                            Legacy<span class="text-emerald-600 dark:text-emerald-400">Vault</span>
+                            Legalcy<span class="text-emerald-600 dark:text-emerald-400">Vault</span>
                         </span>
                     </a>
 
