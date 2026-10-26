@@ -71,7 +71,7 @@ return [
             'use_path_style_endpoint' => true,
             'throw' => false,
         ],
-    'supabase_proofs' => [
+    'supabase_proofs' => [              
             'driver' => 's3',
             'key' => env('SUPABASE_ACCESS_KEY_ID'),
             'secret' => env('SUPABASE_SECRET_ACCESS_KEY'),

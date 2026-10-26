@@ -227,16 +227,24 @@ $subject = "Peringatan Konfirmasi Sehat [#{$randomCode} - {$timestamp}]";
                 }
 
                 // Logika Dekripsi Isi Teks Aset
-                $rawText = $asset->content ?? $asset->credentials ?? $asset->secret_data ?? $asset->description ?? null;
-                $decryptedText = 'Tidak ada catatan teks';
-                if (!empty($rawText)) {
-                    try {
-                        $decryptedText = Crypt::decryptString($rawText);
-                    } catch (\Throwable $e) {
-                        $decryptedText = $rawText;
-                    }
-                }
+             // Tambahkan $asset->secret_content di baris paling awal
+            $rawText = $asset->secret_content 
+                ?? $asset->content 
+                ?? $asset->credentials 
+                ?? $asset->secret_data 
+                ?? $asset->description 
+                ?? null;
 
+            $decryptedText = 'Tidak ada catatan teks';
+
+            if (!empty($rawText)) {
+                try {
+                    $decryptedText = Crypt::decryptString($rawText);
+                } catch (\Throwable $e) {
+                    // Jika teks tidak terenkripsi atau gagal didekripsi, tampilkan teks aslinya
+                    $decryptedText = $rawText;
+                }
+            }
                 // Logika Tautan Lampiran
                 $filePath = $asset->file_path ?? $asset->attachment_path ?? $asset->image_path ?? null;
                 $attachmentUrl = null;
