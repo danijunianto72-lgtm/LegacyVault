@@ -2,55 +2,29 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class EmailApiService
 {
     /**
-     * Kirim email otomatis via Brevo API
+     * Kirim email otomatis menggunakan SMTP Gmail Resmi
      */
     public static function send(string $toEmail, string $toName, string $subject, string $htmlContent): bool
     {
-        $apiKey = env('BREVO_API_KEY');
-        $senderEmail = env('MAIL_FROM_ADDRESS');
-        $senderName = env('MAIL_FROM_NAME', 'Brankas Warisan Digital');
-
-        if (empty($apiKey) || empty($senderEmail)) {
-            Log::error('BREVO_API_KEY atau MAIL_FROM_ADDRESS belum disetel di environment.');
-            return false;
-        }
-
         try {
-            $payload = [
-                'sender' => [
-                    'name' => $senderName,
-                    'email' => trim($senderEmail),
-                ],
-                'to' => [
-                    [
-                        'email' => trim($toEmail),
-                        'name' => !empty(trim($toName)) ? trim($toName) : trim($toEmail),
-                    ]
-                ],
-                'subject' => $subject,
-                'htmlContent' => $htmlContent,
-            ];
+            $senderEmail = config('mail.from.address', env('MAIL_FROM_ADDRESS'));
+            $senderName = config('mail.from.name', env('MAIL_FROM_NAME', 'LegacyVault'));
 
-            $response = Http::timeout(15)->withHeaders([
-                'accept' => 'application/json',
-                'api-key' => trim($apiKey),
-                'content-type' => 'application/json',
-            ])->post('https://api.brevo.com/v3/smtp/email', $payload);
-
-            if ($response->failed()) {
-                Log::error('Brevo API Error Status (' . $response->status() . '): ' . $response->body());
-                return false;
-            }
+            Mail::html($htmlContent, function ($message) use ($toEmail, $toName, $subject, $senderEmail, $senderName) {
+                $message->from($senderEmail, $senderName)
+                        ->to(trim($toEmail), trim($toName) ?: null)
+                        ->subject($subject);
+            });
 
             return true;
         } catch (\Throwable $e) {
-            Log::error('Koneksi Brevo API Gagal: ' . $e->getMessage());
+            Log::error('SMTP Gmail Gagal Mengirim Email: ' . $e->getMessage());
             return false;
         }
     }
