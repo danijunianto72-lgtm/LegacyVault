@@ -66,7 +66,7 @@ class DeadManSwitchController extends Controller
         return redirect('/dashboard')->with('success', 'Konfirmasi sehat via Email berhasil! Timer dikembalikan ke setelan normal.');
     }
 
-    public function sendSimulationEmail(Request $request): RedirectResponse
+public function sendSimulationEmail(Request $request): RedirectResponse
     {
         $user = $request->user();
 
@@ -81,10 +81,11 @@ class DeadManSwitchController extends Controller
             'confirmUrl' => $confirmUrl,
         ])->render();
 
+        $timestamp = now()->timezone('Asia/Jakarta')->format('H:i:s');
         $randomCode = strtoupper(substr(md5(uniqid()), 0, 5));
-$timestamp = now()->timezone('Asia/Jakarta')->format('H:i:s');
-$subject = "Peringatan Konfirmasi Sehat [#{$randomCode} - {$timestamp}]";
+        $subject = "⚠️ Konfirmasi Sehat [#{$randomCode} - {$timestamp}] - Warisan Digital";
 
+        // Panggil pengiriman email
         $sent = EmailApiService::send(
             $user->email,
             $user->name,
@@ -93,18 +94,18 @@ $subject = "Peringatan Konfirmasi Sehat [#{$randomCode} - {$timestamp}]";
         );
 
         if (!$sent) {
-            return back()->with('error', 'Gagal mengirim email via Brevo. Silakan periksa konfigurasi.');
+            $lastError = session('mail_error', 'Gagal menghubungkan ke server email.');
+            return back()->with('error', "Gagal kirim email: {$lastError}");
         }
 
-        // Mulai hitung mundur 5 menit menuju pelepasan aset ke ahli waris (total 10 menit)
         $user->update([
             'warning_sent_at' => now(),
             'inheritance_dispatched_at' => null,
         ]);
 
-        ActivityLog::record('SIMULATION_EMAIL_SENT', "Email konfirmasi sehat berhasil dikirim ke {$user->email}");
+        ActivityLog::record('SIMULATION_EMAIL_SENT', "Email konfirmasi dikirim ke {$user->email}");
 
-        return back()->with('success', "Email konfirmasi telah dikirim ke {$user->email}! Jika tidak ada di Kotak Masuk, periksa folder SPAM atau tab Promosi/Updates.");
+        return back()->with('success', "Email konfirmasi berhasil dikirim ke {$user->email} pada {$timestamp}! Silakan cek Inbox.");
     }
 
     public function checkTimerStatus(Request $request): JsonResponse
