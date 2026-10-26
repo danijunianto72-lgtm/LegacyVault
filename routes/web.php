@@ -80,6 +80,7 @@ Route::post('/logout', function (Request $request) {
 // Protected Area (Wajib Login)
 Route::middleware('auth')->group(function () {
 
+Route::post('/assets/{asset}/request-extension', [AssetController::class, 'requestExtension'])->name('assets.requestExtension');
     // Profil Pengguna (Mengatasi Route [profile.update] not defined)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
