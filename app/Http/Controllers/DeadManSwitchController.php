@@ -191,6 +191,9 @@ $subject = "Peringatan Konfirmasi Sehat [#{$randomCode} - {$timestamp}]";
         ]);
     }
 
+/**
+     * Menyerahkan aset ke seluruh ahli waris terdaftar melalui Email & WhatsApp
+     */
     protected function dispatchAssetsToBeneficiaries(User $user): int
     {
         $beneficiaries = $user->beneficiaries()->get();
@@ -206,22 +209,68 @@ $subject = "Peringatan Konfirmasi Sehat [#{$randomCode} - {$timestamp}]";
                 $benAssets = $allAssets;
             }
 
-            if ($benAssets->isEmpty()) continue;
+            if ($benAssets->isEmpty()) {
+                continue;
+            }
 
+            // Siapkan susunan data aset bersih
+            $formattedAssets = [];
+            foreach ($benAssets as $asset) {
+                // Logika Masa Berlaku: Selamanya vs Rentang Tanggal
+                $validity = 'Selamanya';
+                if (!empty($asset->expires_at)) {
+                    $startDate = !empty($asset->starts_at) 
+                        ? \Carbon\Carbon::parse($asset->starts_at)->format('d M Y') 
+                        : ($asset->created_at ? $asset->created_at->format('d M Y') : now()->format('d M Y'));
+                    $endDate = \Carbon\Carbon::parse($asset->expires_at)->format('d M Y');
+                    $validity = "{$startDate} s.d {$endDate}";
+                }
+
+                // Logika Dekripsi Isi Teks Aset
+                $rawText = $asset->content ?? $asset->credentials ?? $asset->secret_data ?? $asset->description ?? null;
+                $decryptedText = 'Tidak ada catatan teks';
+                if (!empty($rawText)) {
+                    try {
+                        $decryptedText = Crypt::decryptString($rawText);
+                    } catch (\Throwable $e) {
+                        $decryptedText = $rawText;
+                    }
+                }
+
+                // Logika Tautan Lampiran
+                $filePath = $asset->file_path ?? $asset->attachment_path ?? $asset->image_path ?? null;
+                $attachmentUrl = null;
+                if (!empty($filePath)) {
+                    $attachmentUrl = str_starts_with($filePath, 'http')
+                        ? $filePath
+                        : Storage::disk('supabase')->url($filePath);
+                }
+
+                $formattedAssets[] = [
+                    'name' => $asset->name ?? $asset->title ?? 'Aset Digital',
+                    'category' => ucwords(str_replace('_', ' ', $asset->category ?? $asset->type ?? 'Dokumen')),
+                    'validity' => $validity,
+                    'content' => $decryptedText,
+                    'attachment_url' => $attachmentUrl,
+                ];
+            }
+
+            // 1. Eksekusi Kirim Email ke Ahli Waris
             $benEmail = trim((string) $ben->email);
             if (!empty($benEmail) && filter_var($benEmail, FILTER_VALIDATE_EMAIL)) {
                 $htmlRelease = view('emails.beneficiary-release', [
                     'owner' => $user,
                     'beneficiary' => $ben,
-                    'assets' => $benAssets,
+                    'formattedAssets' => $formattedAssets,
                 ])->render();
 
-                $mailSubject = "🔐 Penyerahan Aset Warisan Digital dari {$user->name}";
+                $mailSubject = "🔐 [LegacyVault] Penyerahan Amanat Aset Digital dari {$user->name}";
                 EmailApiService::send($benEmail, $ben->name, $mailSubject, $htmlRelease);
             }
 
+            // 2. Eksekusi Kirim WhatsApp ke Ahli Waris
             if (!empty(trim((string) $ben->phone))) {
-                $this->sendWhatsAppToBeneficiary($user, $ben, $benAssets);
+                $this->sendWhatsAppBeneficiaryRelease($user, $ben, $formattedAssets);
             }
 
             $count++;
@@ -229,10 +278,54 @@ $subject = "Peringatan Konfirmasi Sehat [#{$randomCode} - {$timestamp}]";
 
         ActivityLog::record(
             'INHERITANCE_DISPATCHED',
-            "Sakelar otomatis menyerahkan aset ke {$count} ahli waris."
+            "Sakelar otomatis menyerahkan amanat aset kepada {$count} ahli waris melalui Email & WhatsApp."
         );
 
         return $count;
+    }
+
+    /**
+     * Helper: Format pesan WhatsApp sesuai format resmi
+     */
+    protected function sendWhatsAppBeneficiaryRelease(User $owner, $beneficiary, array $formattedAssets): void
+    {
+        $message = "Halo *{$beneficiary->name}*,\n\n"
+            . "Pesan otomatis ini dikirimkan oleh sistem *LegacyVault* secara otomatis karena Bapak/Ibu *{$owner->name}* tidak merespons konfirmasi keaktifan berkala dalam batas waktu yang telah ditentukan (melewati prosedur pengingat bertahap).\n\n"
+            . "Sesuai dengan instruksi dan amanat yang telah diatur oleh beliau semasa hidup/aktif, berikut adalah rincian aset digital, dokumen, serta kredensial penting yang diwariskan secara khusus kepada Anda:\n\n";
+
+        foreach ($formattedAssets as $idx => $asset) {
+            $num = $idx + 1;
+            $attachment = $asset['attachment_url'] ?: 'Tidak Ada';
+
+            $message .= "----------------------------------\n"
+                . "{$num}. *{$asset['name']}*\n"
+                . "2. Kategori: {$asset['category']}\n"
+                . "3. Ahli Waris Ditunjuk: {$beneficiary->name}\n"
+                . "4. Masa Berlaku Aset: {$asset['validity']}\n"
+                . "5. Isi Aset & Kredensial: {$asset['content']}\n"
+                . "6. Dokumen Lampiran: {$attachment}\n\n";
+        }
+
+        $message .= "----------------------------------\n"
+            . "*Informasi Penting & Petunjuk Selanjutnya:*\n"
+            . "1. Harap simpan rincian informasi dan dokumen lampiran di atas dengan aman dan bersifat rahasia.\n"
+            . "2. Jika dokumen memerlukan proses verifikasi atau klaim fisik (seperti rekening bank, polis asuransi, atau sertifikat), Anda dapat membawa salinan berkas ini ke instansi/lembaga terkait sesuai dengan prosedur hukum yang berlaku.\n"
+            . "3. Apabila terdapat kekeliruan atau Anda membutuhkan bantuan teknis dalam mengunduh dokumen terenkripsi, silakan hubungi tim dukungan kami di support@legacyvault.com atau kunjungi legacyvault.com/help.\n\n"
+            . "_Pesan ini disampaikan secara sah dan otomatis berdasarkan pengaturan amanat dari pemilik akun yang bersangkutan._\n\n"
+            . "Hormat kami,\n"
+            . "*Tim Otomasi Sistem LegacyVault*\n"
+            . "Sistem Penyimpanan & Penyerahan Aset Digital Terenkripsi";
+
+        $fonnteToken = env('FONNTE_TOKEN');
+        if (!empty($fonnteToken)) {
+            try {
+                Http::withHeaders(['Authorization' => $fonnteToken])
+                    ->post('https://api.fonnte.com/send', [
+                        'target' => $beneficiary->phone,
+                        'message' => $message,
+                    ]);
+            } catch (\Throwable $e) {}
+        }
     }
 
     protected function sendWhatsAppToBeneficiary(User $owner, $ben, $assets): void
