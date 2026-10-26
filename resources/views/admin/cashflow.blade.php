@@ -88,53 +88,7 @@
         </div>
     </div>
 
-    <!-- Bar Form Pencarian & Filter Gabungan -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-        <form action="{{ route('admin.cashflow.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            
-            <!-- 1. Input Pencarian -->
-            <div class="lg:col-span-2 relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" 
-                       name="search" 
-                       value="{{ $search }}" 
-                       placeholder="Cari nama pengguna, email, atau nama pengirim..." 
-                       class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
-            </div>
 
-            <!-- 2. Combobox Periode Waktu -->
-            <div>
-                <select name="period" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
-                    <option value="all" {{ $period === 'all' ? 'selected' : '' }}>Semua Waktu</option>
-                    <option value="today" {{ $period === 'today' ? 'selected' : '' }}>Hari Ini</option>
-                    <option value="week" {{ $period === 'week' ? 'selected' : '' }}>Minggu Ini</option>
-                    <option value="month" {{ $period === 'month' ? 'selected' : '' }}>Bulan Ini</option>
-                </select>
-            </div>
-
-            <!-- 3. Combobox Pilihan Bank -->
-            <div>
-                <select name="bank" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
-                    <option value="">Semua Rekening Bank</option>
-                    <option value="BCA_BNI" {{ $bankFilter === 'BCA_BNI' ? 'selected' : '' }}>BCA / BNI</option>
-                    <option value="BRI" {{ $bankFilter === 'BRI' ? 'selected' : '' }}>Bank BRI</option>
-                </select>
-            </div>
-
-            <!-- 4. Tombol Aksi Terapkan & Reset -->
-            <div class="flex items-center gap-2">
-                <button type="submit" class="w-full py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-filter"></i> Filter
-                </button>
-                @if(!empty($search) || !empty($bankFilter) || $period !== 'all')
-                    <a href="{{ route('admin.cashflow.index') }}" class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-xs font-bold transition flex items-center justify-center shrink-0" title="Reset Filter">
-                        <i class="fa-solid fa-rotate-left"></i>
-                    </a>
-                @endif
-            </div>
-
-        </form>
-    </div>
 
     <!-- ========================================== -->
     <!-- BAGIAN 3 VISUALISASI GRAFIK (CHART.JS)     -->
@@ -263,6 +217,53 @@
 
     </div>
 
+        <!-- Bar Form Pencarian & Filter Gabungan -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
+        <form action="{{ route('admin.cashflow.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            
+            <!-- 1. Input Pencarian -->
+            <div class="lg:col-span-2 relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" 
+                       name="search" 
+                       value="{{ $search }}" 
+                       placeholder="Cari nama pengguna, email, atau nama pengirim..." 
+                       class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+            </div>
+
+            <!-- 2. Combobox Periode Waktu -->
+            <div>
+                <select name="period" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+                    <option value="all" {{ $period === 'all' ? 'selected' : '' }}>Semua Waktu</option>
+                    <option value="today" {{ $period === 'today' ? 'selected' : '' }}>Hari Ini</option>
+                    <option value="week" {{ $period === 'week' ? 'selected' : '' }}>Minggu Ini</option>
+                    <option value="month" {{ $period === 'month' ? 'selected' : '' }}>Bulan Ini</option>
+                </select>
+            </div>
+
+            <!-- 3. Combobox Pilihan Bank -->
+            <div>
+                <select name="bank" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+                    <option value="">Semua Rekening Bank</option>
+                    <option value="BCA_BNI" {{ $bankFilter === 'BCA_BNI' ? 'selected' : '' }}>BCA / BNI</option>
+                    <option value="BRI" {{ $bankFilter === 'BRI' ? 'selected' : '' }}>Bank BRI</option>
+                </select>
+            </div>
+
+            <!-- 4. Tombol Aksi Terapkan & Reset -->
+            <div class="flex items-center gap-2">
+                <button type="submit" class="w-full py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-filter"></i> Filter
+                </button>
+                @if(!empty($search) || !empty($bankFilter) || $period !== 'all')
+                    <a href="{{ route('admin.cashflow.index') }}" class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-xs font-bold transition flex items-center justify-center shrink-0" title="Reset Filter">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                @endif
+            </div>
+
+        </form>
+    </div>
     <!-- Tabel Rincian Data Cashflow -->
  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
     <div class="overflow-x-auto">
