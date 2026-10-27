@@ -399,19 +399,39 @@
                                 @endif
                             </td>
 
-                            <td class="py-3.5 px-3 space-y-1.5 whitespace-nowrap">
+                          <td class="py-3.5 px-3 space-y-1.5 whitespace-nowrap">
                                 <div class="text-slate-600 dark:text-slate-300">
                                     {{ $pay->admin_note ?: 'Pembayaran diverifikasi & paket diaktifkan' }}
                                 </div>
+
+                                @php
+                                    // Ambil path bukti dari berbagai variasi nama field database
+                                    $proofPath = $pay->proof_image_path 
+                                        ?? $pay->payment_proof 
+                                        ?? $pay->proof_file 
+                                        ?? $pay->proof 
+                                        ?? null;
+
+                                    $fullProofUrl = null;
+                                    if (!empty($proofPath)) {
+                                        $fullProofUrl = str_starts_with($proofPath, 'http') 
+                                            ? $proofPath 
+                                            : Storage::disk('supabase')->url(ltrim($proofPath, '/'));
+                                    }
+
+                                    $senderName = $pay->user->name ?? auth()->user()->name ?? '-';
+                                    $invoiceCode = $pay->invoice_number ?? $pay->order_id ?? ('TRX-' . $pay->id);
+                                @endphp
+
                                 @if($fullProofUrl)
                                     <button type="button"
-                                            @click="proofUrl = '{{ $fullProofUrl }}'; userName = '{{ addslashes($senderName) }}'; trxCode = '{{ $pay->invoice_number ?? $pay->id }}'; previewModal = true;"
+                                            @click="proofUrl = '{{ $fullProofUrl }}'; userName = '{{ addslashes($senderName) }}'; trxCode = '{{ $invoiceCode }}'; previewModal = true;"
                                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all font-medium">
                                         <i class="fa-solid fa-receipt"></i>
                                         <span>Lihat Bukti</span>
                                     </button>
                                 @else
-                                    <span class="text-slate-500 italic">Belum ada bukti</span>
+                                    <span class="text-slate-500 italic text-[11px]">Belum ada bukti</span>
                                 @endif
                             </td>
                         </tr>
