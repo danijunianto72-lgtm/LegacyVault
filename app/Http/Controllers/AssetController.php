@@ -15,15 +15,21 @@ use Illuminate\View\View;
 
 class AssetController extends Controller
 {
-    public function index(Request $request): View
+public function index(Request $request): View
     {
         $user = $request->user();
 
         // Query Aset dengan Filter Kategori, Ahli Waris, dan Pencarian
         $query = $user->assets()->with('beneficiaries')->latest();
 
+        $standardCategories = ['Finansial', 'Kredensial Akun', 'Dokumen Rahasia', 'Pesan Wasiat'];
+
         if ($request->filled('category') && $request->category !== 'all') {
-            $query->where('category', $request->category);
+            if ($request->category === 'Lainnya') {
+                $query->whereNotIn('category', $standardCategories);
+            } else {
+                $query->where('category', $request->category);
+            }
         }
 
         if ($request->filled('beneficiary_id')) {
@@ -34,7 +40,10 @@ class AssetController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('title', 'like', "%{$search}%");
+            $query->where(function($q) use ($search, $standardCategories) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%");
+            });
         }
 
         $assets = $query->get();
@@ -42,16 +51,17 @@ class AssetController extends Controller
         $beneficiaries = $user->beneficiaries()->latest()->get();
         $currentPlan = $user->currentPlan();
         $subscription = $user->subscriptions()->where('status', 'active')->latest()->first();
-        // Ambil 15 Log Aktivitas Terakhir Milik User Ini
+        
         // Ambil query log per 10 item
-$activityLogs = $user->activityLogs()
-    ->latest()
-    ->paginate(10, ['*'], 'log_page')
-    ->withQueryString();
-// Di dalam method index(), sebelum return view:
-    if (!$user->next_check_in_deadline) {
-        $user->confirmCheckIn();
-    }
+        $activityLogs = $user->activityLogs()
+            ->latest()
+            ->paginate(10, ['*'], 'log_page')
+            ->withQueryString();
+
+        if (!$user->next_check_in_deadline) {
+            $user->confirmCheckIn();
+        }
+
         return view('dashboard', compact(
             'assets',
             'totalAssetsCount',
@@ -98,7 +108,7 @@ $activityLogs = $user->activityLogs()
 
     $validated = $request->validate([
         'title' => 'required|string|max:150',
-        'category' => 'required|in:Finansial,Dokumen Rahasia,Kredensial Akun,Pesan Wasiat',
+        'category' => 'required|string|max:100',
         'secret_content' => 'required|string',
         'attachment' => 'nullable|file|max:5120',
         'beneficiary_ids' => 'nullable|array',

@@ -521,74 +521,75 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
 
         <!-- Filter & Search Bar -->
-        <div class="space-y-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-            @php
-                $activeCat = request('category', 'all');
-                $categories = [
-                    'all' => 'Semua Aset',
-                    'Finansial' => 'Rekening Bank',
-                    'Kredensial Akun' => 'Crypto / Seed Phrase',
-                    'Dokumen Rahasia' => 'Dokumen Legal',
-                    'Pesan Wasiat' => 'Pesan Wasiat',
-                ];
-            @endphp
+     <div class="space-y-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+    @php
+        $activeCat = request('category', 'all');
+        $categories = [
+            'all' => 'Semua Aset',
+            'Finansial' => 'Rekening Bank',
+            'Kredensial Akun' => 'Crypto / Seed Phrase',
+            'Dokumen Rahasia' => 'Dokumen Legal',
+            'Pesan Wasiat' => 'Pesan Wasiat',
+            'Lainnya' => 'Lainnya',
+        ];
+    @endphp
 
-            <!-- Banner Filter Aset Kadaluarsa -->
-            <div x-show="filterExpiringOnly" x-cloak class="mb-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
-                <div class="text-xs text-amber-400 font-semibold flex items-center gap-2">
-                    <i class="fa-solid fa-filter"></i>
-                    <span>Menampilkan khusus aset yang akan/sudah kadaluarsa (&le; 7 hari)</span>
-                </div>
-                <button @click="filterExpiringOnly = false" type="button" class="px-3 py-1 rounded-xl bg-slate-800 text-xs text-white hover:bg-slate-700">
-                    Tampilkan Semua Aset
+    <!-- Banner Filter Aset Kadaluarsa -->
+    <div x-show="filterExpiringOnly" x-cloak class="mb-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+        <div class="text-xs text-amber-400 font-semibold flex items-center gap-2">
+            <i class="fa-solid fa-filter"></i>
+            <span>Menampilkan khusus aset yang akan/sudah kadaluarsa (&le; 7 hari)</span>
+        </div>
+        <button @click="filterExpiringOnly = false" type="button" class="px-3 py-1 rounded-xl bg-slate-800 text-xs text-white hover:bg-slate-700">
+            Tampilkan Semua Aset
+        </button>
+    </div>
+
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <!-- Pill Kategori -->
+        <div class="flex flex-wrap items-center gap-2">
+            @foreach($categories as $key => $label)
+                <a href="{{ route('dashboard', array_merge(request()->query(), ['category' => $key])) }}"
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition border {{ $activeCat === $key ? 'bg-slate-900 text-white dark:bg-slate-800 dark:text-white border-slate-700 shadow-sm' : 'bg-transparent text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200/60 dark:hover:bg-slate-900' }}">
+                    {{ $label }}
+                </a>
+            @endforeach
+        </div>
+
+        <!-- Form Search & Dropdown Ahli Waris -->
+        <form action="{{ route('dashboard') }}" method="GET" class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            @if(request('category'))
+                <input type="hidden" name="category" value="{{ request('category') }}">
+            @endif
+
+            <div class="relative w-full sm:w-48">
+                <select name="beneficiary_id" onchange="this.form.submit()"
+                        class="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 pl-3 pr-8 py-2 text-xs text-slate-700 dark:text-slate-300 focus:border-emerald-500 focus:outline-none">
+                    <option value="">Semua Ahli Waris</option>
+                    @foreach($beneficiaries as $person)
+                        <option value="{{ $person->id }}" {{ request('beneficiary_id') == $person->id ? 'selected' : '' }}>
+                            {{ $person->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="relative flex-1 sm:w-56">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama/kategori aset..."
+                       class="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 pl-3.5 pr-9 py-2 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                <button type="submit" class="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-emerald-500">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
                 </button>
             </div>
 
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <!-- Pill Kategori -->
-                <div class="flex flex-wrap items-center gap-2">
-                    @foreach($categories as $key => $label)
-                        <a href="{{ route('dashboard', array_merge(request()->query(), ['category' => $key])) }}"
-                           class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition border {{ $activeCat === $key ? 'bg-slate-900 text-white dark:bg-slate-800 dark:text-white border-slate-700 shadow-sm' : 'bg-transparent text-slate-600 dark:text-slate-400 border-transparent hover:bg-slate-200/60 dark:hover:bg-slate-900' }}">
-                            {{ $label }}
-                        </a>
-                    @endforeach
-                </div>
-
-                <!-- Form Search & Dropdown Ahli Waris -->
-                <form action="{{ route('dashboard') }}" method="GET" class="flex flex-wrap sm:flex-nowrap items-center gap-2">
-                    @if(request('category'))
-                        <input type="hidden" name="category" value="{{ request('category') }}">
-                    @endif
-
-                    <div class="relative w-full sm:w-48">
-                        <select name="beneficiary_id" onchange="this.form.submit()"
-                                class="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 pl-3 pr-8 py-2 text-xs text-slate-700 dark:text-slate-300 focus:border-emerald-500 focus:outline-none">
-                            <option value="">Semua Ahli Waris</option>
-                            @foreach($beneficiaries as $person)
-                                <option value="{{ $person->id }}" {{ request('beneficiary_id') == $person->id ? 'selected' : '' }}>
-                                    {{ $person->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="relative flex-1 sm:w-56">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama aset..."
-                               class="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 pl-3.5 pr-9 py-2 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        <button type="submit" class="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-emerald-500">
-                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                        </button>
-                    </div>
-
-                    @if(request()->filled('search') || request()->filled('beneficiary_id') || (request()->filled('category') && request('category') !== 'all'))
-                        <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-xs font-semibold" title="Reset Filter">
-                            <i class="fa-solid fa-rotate-left"></i>
-                        </a>
-                    @endif
-                </form>
-            </div>
-        </div>
+            @if(request()->filled('search') || request()->filled('beneficiary_id') || (request()->filled('category') && request('category') !== 'all'))
+                <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-xs font-semibold" title="Reset Filter">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+            @endif
+        </form>
+    </div>
+</div>
 
         <!-- Daftar Kartu Aset -->
         <div class="space-y-4">
@@ -1121,18 +1122,37 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                            class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        <i class="fa-solid fa-tags mr-1 text-emerald-500"></i> Kategori Aset
-                    </label>
-                    <select name="category" 
-                            class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        <option value="Finansial">Rekening Bank / Finansial</option>
-                        <option value="Kredensial Akun">Crypto / Seed Phrase</option>
-                        <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
-                        <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
-                    </select>
-                </div>
+              <div x-data="{ catSelect: 'Finansial', catCustom: '' }" class="space-y-2.5">
+    <div>
+        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <i class="fa-solid fa-tags mr-1 text-emerald-500"></i> Kategori Aset
+        </label>
+        <select x-model="catSelect" 
+                required
+                class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+            <option value="Finansial">Rekening Bank / Finansial</option>
+            <option value="Kredensial Akun">Crypto / Seed Phrase</option>
+            <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
+            <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
+            <option value="Lainnya">Lainnya (Ketik Sendiri)...</option>
+        </select>
+    </div>
+
+    <!-- Muncul jika memilih "Lainnya" -->
+    <div x-show="catSelect === 'Lainnya'" x-cloak x-transition>
+        <label class="block text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+            Ketik Nama Kategori Aset *
+        </label>
+        <input type="text" 
+               x-model="catCustom"
+               :required="catSelect === 'Lainnya'"
+               placeholder="Contoh: Polis Asuransi / Akun Media Sosial / Properti..."
+               class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-emerald-500/50 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+    </div>
+
+    <!-- Nilai akhir yang dikirim ke server sebagai name="category" -->
+    <input type="hidden" name="category" :value="catSelect === 'Lainnya' ? catCustom : catSelect">
+</div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -1519,19 +1539,54 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         <label class="block text-xs font-semibold text-slate-400 mb-1">Perbarui Lampiran Dokumen/Foto (Opsional)</label>
                         <input type="file" name="attachment" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-emerald-500/15 file:text-emerald-400 file:font-bold">
                     </div>
-                    <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Kategori Aset</label>
-                    <select name="category" 
-                            x-model="selectedAsset.category" 
-                            required 
-                            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        <option value="Finansial">Rekening Bank / Finansial</option>
-                        <option value="Kredensial Akun">Crypto / Seed Phrase</option>
-                        <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
-                        <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
-                    </select>
-                    
-                </div><div>
+                   <div x-data="{
+        presetCats: ['Finansial', 'Kredensial Akun', 'Dokumen Rahasia', 'Pesan Wasiat'],
+        catChoice: 'Finansial',
+        catCustom: '',
+        syncCategory() {
+            const current = selectedAsset.category || 'Finansial';
+            if (this.presetCats.includes(current)) {
+                this.catChoice = current;
+                this.catCustom = '';
+            } else {
+                this.catChoice = 'Lainnya';
+                this.catCustom = current;
+            }
+        }
+     }"
+     x-init="syncCategory(); $watch('selectedAsset.id', () => syncCategory()); $watch('editModalOpen', (open) => { if (open) syncCategory(); })"
+     class="space-y-2.5">
+
+    <div>
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Kategori Aset</label>
+        <select x-model="catChoice"
+                @change="selectedAsset.category = (catChoice === 'Lainnya' ? catCustom : catChoice)"
+                required
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+            <option value="Finansial">Rekening Bank / Finansial</option>
+            <option value="Kredensial Akun">Crypto / Seed Phrase</option>
+            <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
+            <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
+            <option value="Lainnya">Lainnya (Ketik Sendiri)...</option>
+        </select>
+    </div>
+
+    <!-- Muncul jika memilih "Lainnya" -->
+    <div x-show="catChoice === 'Lainnya'" x-cloak x-transition>
+        <label class="block text-[11px] font-medium text-emerald-500 mb-1">
+            Ketik Nama Kategori Lainnya *
+        </label>
+        <input type="text"
+               x-model="catCustom"
+               @input="selectedAsset.category = catCustom"
+               :required="catChoice === 'Lainnya'"
+               placeholder="Contoh: Polis Asuransi / Lisensi Bisnis..."
+               class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-emerald-500/50 text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+    </div>
+
+    <input type="hidden" name="category" :value="catChoice === 'Lainnya' ? catCustom : catChoice">
+</div>
+                <div>
                        <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5"
                         x-data="{ showPass: false }">
                         <label class="block text-xs font-bold text-amber-400">
