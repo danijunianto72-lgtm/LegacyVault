@@ -101,6 +101,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         showAttachPassword: false,
         attachError: '',
         isVerifyingAttach: false,
+        verifiedAttachUrl: '',
 
         openAttachModal(id, title) {
             this.targetAttachId = id;
@@ -109,6 +110,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
             this.attachError = '';
             this.showAttachPassword = false;
             this.attachModalOpen = true;
+            this.verifiedAttachUrl = ''; // <-- Reset agar selalu minta password dulu
         },
 
         async submitAttachAuth() {
@@ -132,8 +134,9 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                 if (!res.ok) {
                     this.attachError = data.message || 'Kata sandi salah!';
                 } else {
-                    this.attachModalOpen = false;
-                    window.open(data.download_url, '_blank');
+    // Simpan URL dari server ke state verifiedAttachUrl agar modal beralih ke tampilan preview
+                    this.verifiedAttachUrl = data.download_url;
+                    this.attachPassword = ''; // Kosongkan input password demi keamanan
                 }
             } catch (e) {
                 this.attachError = 'Terjadi kesalahan sistem.';
@@ -1106,20 +1109,30 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
     </div>
 </template>
     <!-- MODAL 3: BUKA LAMPIRAN TERPROTEKSI PASSWORD               -->
-    <div x-show="attachModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-        <div @click.away="attachModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-emerald-500"></i>
-                    <span>Buka Berkas Lampiran Rahasia</span>
-                </h3>
-                <button @click="attachModalOpen = false" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+<div x-show="attachModalOpen" 
+     x-cloak 
+     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/75 p-4 backdrop-blur-sm"
+     @keydown.escape.window="attachModalOpen = false; verifiedAttachUrl = ''">
+    
+    <div @click.away="attachModalOpen = false; verifiedAttachUrl = ''" 
+         :class="verifiedAttachUrl ? 'max-w-lg' : 'max-w-md'"
+         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full shadow-2xl overflow-hidden transition-all">
+        
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid text-emerald-500" :class="verifiedAttachUrl ? 'fa-eye' : 'fa-shield-halved'"></i>
+                <span x-text="verifiedAttachUrl ? 'Preview Lampiran Aset' : 'Buka Berkas Lampiran Rahasia'"></span>
+            </h3>
+            <button type="button" @click="attachModalOpen = false; verifiedAttachUrl = ''" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
 
-            <p class="text-xs text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
-                Lampiran dari aset <strong class="text-slate-900 dark:text-white" x-text="targetAttachTitle"></strong> diamankan. Masukkan kata sandi akun Anda untuk mengunduh berkas.
+        <!-- TAHAP 1: Form Verifikasi Password (Muncul sebelum terverifikasi) -->
+        <div x-show="!verifiedAttachUrl" class="p-6">
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Lampiran dari aset <strong class="text-slate-900 dark:text-white" x-text="targetAttachTitle"></strong> diamankan. Masukkan kata sandi akun Anda untuk membuka preview berkas.
             </p>
 
             <form @submit.prevent="submitAttachAuth()" class="mt-4 space-y-4">
@@ -1145,16 +1158,59 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" @click="attachModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">Batal</button>
-                    <button type="submit" :disabled="isVerifyingAttach" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-arrow-down"></i>
-                        <span x-text="isVerifyingAttach ? 'Memverifikasi...' : 'Buka Lampiran'"></span>
+                    <button type="button" @click="attachModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition">Batal</button>
+                    <button type="submit" :disabled="isVerifyingAttach" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+                        <i class="fa-solid fa-unlock-keyhole"></i>
+                        <span x-text="isVerifyingAttach ? 'Memverifikasi...' : 'Buka Preview'"></span>
                     </button>
                 </div>
             </form>
         </div>
-    </div>
 
+        <!-- TAHAP 2: Tampilan Preview Lampiran (Muncul setelah password benar) -->
+        <div x-show="verifiedAttachUrl" x-cloak>
+            <!-- Sub-info Nama Aset -->
+            <div class="px-6 py-2.5 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center justify-between">
+                <span class="text-xs text-slate-600 dark:text-slate-300">
+                    Aset: <strong class="text-emerald-600 dark:text-emerald-400" x-text="targetAttachTitle"></strong>
+                </span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-semibold">
+                    Terverifikasi
+                </span>
+            </div>
+
+            <!-- Area Preview Gambar / Dokumen -->
+            <div class="p-4 flex items-center justify-center bg-slate-100/80 dark:bg-slate-950/60 max-h-[60vh] overflow-auto">
+                <template x-if="verifiedAttachUrl && verifiedAttachUrl.toLowerCase().includes('.pdf')">
+                    <iframe :src="verifiedAttachUrl" class="w-full h-[55vh] rounded-lg border border-slate-200 dark:border-slate-800"></iframe>
+                </template>
+
+                <template x-if="verifiedAttachUrl && !verifiedAttachUrl.toLowerCase().includes('.pdf')">
+                    <img :src="verifiedAttachUrl" 
+                         alt="Preview Lampiran" 
+                         class="max-h-[55vh] w-auto object-contain rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                </template>
+            </div>
+
+            <!-- Footer: Hanya Tombol Lihat Full & Tutup (Tanpa Print) -->
+            <div class="flex items-center justify-between px-6 py-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50">
+                <a :href="verifiedAttachUrl" 
+                   target="_blank" 
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition-all">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Lihat Full</span>
+                </a>
+
+                <button type="button" 
+                        @click="attachModalOpen = false; verifiedAttachUrl = ''"
+                        class="px-4 py-2 rounded-xl bg-slate-200/80 hover:bg-slate-300/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer">
+                    Tutup
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
     <!-- MODAL 4: EDIT DATA AHLI WARIS                             -->
     <div x-show="editBeneficiaryModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
         <div @click.away="editBeneficiaryModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
