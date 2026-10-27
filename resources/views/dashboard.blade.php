@@ -1123,20 +1123,20 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                 </div>
 
               <div x-data="{ catSelect: 'Finansial', catCustom: '' }" class="space-y-2.5">
-    <div>
-        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-            <i class="fa-solid fa-tags mr-1 text-emerald-500"></i> Kategori Aset
-        </label>
-        <select x-model="catSelect" 
-                required
-                class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-            <option value="Finansial">Rekening Bank / Finansial</option>
-            <option value="Kredensial Akun">Crypto / Seed Phrase</option>
-            <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
-            <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
-            <option value="Lainnya">Lainnya (Ketik Sendiri)...</option>
-        </select>
-    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <i class="fa-solid fa-tags mr-1 text-emerald-500"></i> Kategori Aset
+                        </label>
+                        <select x-model="catSelect" 
+                                required
+                                class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                            <option value="Finansial">Rekening Bank / Finansial</option>
+                            <option value="Kredensial Akun">Crypto / Seed Phrase</option>
+                            <option value="Dokumen Rahasia">Dokumen Legal / Sertifikat</option>
+                            <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
+                            <option value="Lainnya">Lainnya (Ketik Sendiri)...</option>
+                        </select>
+                    </div>
 
     <!-- Muncul jika memilih "Lainnya" -->
     <div x-show="catSelect === 'Lainnya'" x-cloak x-transition>
@@ -1699,6 +1699,8 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </div>
 </template>
+
+@endif
 @if($approvedExtensionAsset)
 <template x-teleport="body">
     <div x-data="{ approvedModalOpen: true }" x-show="approvedModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
@@ -1798,7 +1800,6 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </button>
 
     </div>
-@endif
 </div> <!-- Penutup <div class="space-y-8" x-data="..."> -->
 
 @endsection 
