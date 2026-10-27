@@ -44,9 +44,9 @@
             <div class="flex items-center justify-between">
                 <div>
                     <span class="text-xs font-bold uppercase tracking-wider text-sky-500">
-                        Rekening BCA / BNI
+                        Rekening BCA
                     </span>
-                    <div class="text-[10px] text-slate-400 font-mono">8810-2938-44</div>
+                    <div class="text-[10px] text-slate-400 font-mono">3201-4205-88</div>
                 </div>
                 <div class="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center text-base">
                     <i class="fa-solid fa-building-columns"></i>
@@ -136,7 +136,7 @@
                         <span id="pointTrxCount" class="font-bold text-slate-800 dark:text-slate-200"></span>
                     </div>
                     <div>
-                        <span class="text-[10px] text-slate-400 block">Dari BCA / BNI</span>
+                        <span class="text-[10px] text-slate-400 block">Dari BCA</span>
                         <span id="pointBcaValue" class="font-bold text-sky-500"></span>
                     </div>
                     <div>
@@ -197,7 +197,7 @@
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-chart-column text-sky-500"></i>
-                        <span>Perbandingan Pemasukan Bank (BCA/BNI vs BRI)</span>
+                        <span>Perbandingan Pemasukan Bank (BCA vs BRI)</span>
                     </h3>
                     <p class="text-[11px] text-slate-400">Perbandingan total nominal rupiah yang masuk ke masing-masing rekening</p>
                 </div>
@@ -245,7 +245,7 @@
             <div>
                 <select name="bank" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
                     <option value="">Semua Rekening Bank</option>
-                    <option value="BCA_BNI" {{ $bankFilter === 'BCA_BNI' ? 'selected' : '' }}>BCA / BNI</option>
+                    <option value="BCA_BNI" {{ $bankFilter === 'BCA_BNI' ? 'selected' : '' }}>BCA</option>
                     <option value="BRI" {{ $bankFilter === 'BRI' ? 'selected' : '' }}>Bank BRI</option>
                 </select>
             </div>
@@ -264,6 +264,34 @@
 
         </form>
     </div>
+    <div x-data="{ 
+        previewModal: false, 
+        proofUrl: '', 
+        userName: '', 
+        trxCode: '',
+        printProof() {
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <html>
+                    <head>
+                        <title>Bukti Transfer - ${this.trxCode}</title>
+                        <style>
+                            body { font-family: sans-serif; text-align: center; padding: 20px; }
+                            h2 { margin-bottom: 5px; }
+                            p { color: #555; margin-top: 0; }
+                            img { max-width: 90%; max-height: 80vh; border: 1px solid #ddd; border-radius: 8px; margin-top: 15px; }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>Bukti Transfer</h2>
+                        <p>Transaksi: <strong>${this.trxCode}</strong> | a.n <strong>${this.userName}</strong></p>
+                        <img src='${this.proofUrl}' onload='window.print(); window.close();' />
+                    </body>
+                </html>
+            `);
+            printWin.document.close();
+        }
+    }">
     <!-- Tabel Rincian Data Cashflow -->
  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
     <div class="overflow-x-auto">
@@ -326,11 +354,11 @@
                                 </span>
                             @else
                                 <span class="px-2 py-0.5 rounded bg-sky-500/15 text-sky-500 font-bold text-[10px] inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-building-columns"></i> BCA / BNI
+                                    <i class="fa-solid fa-building-columns"></i> BCA 
                                 </span>
                             @endif
                             <div class="text-slate-700 dark:text-slate-300 font-medium mt-1">
-                                a.n {{ $pay->bank_sender_name ?? '-' }}
+                                 <span class="text-white font-semibold">{{ $trx->user->name ?? auth()->user()->name ?? '-' }}</span>
                             </div>
                         </td>
 
@@ -370,11 +398,21 @@
                                 {{ $pay->admin_note ?: 'Pembayaran diverifikasi & paket diaktifkan' }}
                             </div>
                             @if($pay->proof_image_path)
-                                <a href="{{ Storage::disk('supabase_proofs')->url($pay->proof_image_path) }}" 
-                                   target="_blank" 
-                                   class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 hover:underline">
-                                    <i class="fa-solid fa-receipt"></i> Lihat Bukti Transfer
-                                </a>
+                                @php
+                            `      $proofPath = $trx->payment_proof ?? $trx->proof_file ?? null;
+                                    $fullProofUrl = $proofPath ? (str_starts_with($proofPath, 'http') ? $proofPath : Storage::disk('supabase')->url($proofPath)) : null;
+                                @endphp
+
+                                @if($fullProofUrl)
+                                    <button type="button"
+                                            @click="proofUrl = '{{ $fullProofUrl }}'; userName = '{{ addslashes($trx->user->name ?? auth()->user()->name) }}'; trxCode = '{{ $trx->invoice_number ?? $trx->id }}'; previewModal = true;"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all font-medium">
+                                        <i class="fa-solid fa-receipt"></i>
+                                        <span>Lihat Bukti</span>
+                                    </button>
+                                @else
+                                    <span class="text-slate-500 italic">Belum ada bukti</span>
+                                @endif`
                             @endif
                         </td>
                     </tr>
@@ -395,6 +433,57 @@
             {{ $cashflows->links() }}
         </div>
     @endif
+    <div x-show="previewModal" 
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+         @keydown.escape.window="previewModal = false">
+        
+        <div class="relative w-full max-w-lg bg-[#0e1726] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden"
+             @click.away="previewModal = false">
+            
+            <!-- Header Modal -->
+            <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-[#070d1e]">
+                <div>
+                    <h3 class="text-sm font-bold text-white">Preview Bukti Transfer</h3>
+                    <p class="text-[11px] text-slate-400">Pengirim a.n <span class="text-emerald-400 font-semibold" x-text="userName"></span></p>
+                </div>
+                <button type="button" @click="previewModal = false" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Konten Gambar -->
+            <div class="p-4 flex items-center justify-center bg-slate-950/60 max-h-[60vh] overflow-auto">
+                <img :src="proofUrl" alt="Bukti Transfer" class="max-h-[55vh] w-auto object-contain rounded-lg border border-slate-800 shadow-md">
+            </div>
+
+            <!-- Footer: Opsi Buka Full & Tombol Print -->
+            <div class="flex items-center justify-between px-5 py-3 border-t border-slate-800 bg-[#070d1e]">
+                <!-- Tombol Lihat Full (Buka Tab Baru Tanpa Pop-up) -->
+                <a :href="proofUrl" target="_blank" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Lihat Full</span>
+                </a>
+
+                <div class="flex items-center gap-2">
+                    <!-- Tombol Print -->
+                    <button type="button" @click="printProof()"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-lg shadow-cyan-600/20 transition-all">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Print</span>
+                    </button>
+                    <!-- Tombol Tutup -->
+                    <button type="button" @click="previewModal = false"
+                            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 </div>
 
 </div>
@@ -564,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const barChart = new Chart(barCtx, {
         type: 'bar',
         data: {
-            labels: ['Rekening BCA / BNI', 'Rekening Bank BRI'],
+            labels: ['Rekening BCA', 'Rekening Bank BRI'],
             datasets: [{
                 label: 'Nominal Pemasukan (Rp)',
                 data: [
