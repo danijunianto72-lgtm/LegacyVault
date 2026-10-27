@@ -911,7 +911,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
             @endforelse
         </div>
     </div>
-</div>
+</div>  
 
   <div x-show="activeTab === 'logs'" x-cloak x-transition.opacity class="space-y-6">
     <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
@@ -1252,43 +1252,96 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
 </div>
     <!-- MODAL 4: EDIT DATA AHLI WARIS                             -->
     <div x-show="editBeneficiaryModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-        <div @click.away="editBeneficiaryModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-user-pen text-amber-500"></i>
-                    <span>Perbarui Data Ahli Waris</span>
-                </h3>
-                <button @click="editBeneficiaryModal = false" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+    <div @click.away="editBeneficiaryModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-user-pen text-amber-500"></i>
+                <span>Perbarui Data Ahli Waris</span>
+            </h3>
+            <button type="button" @click="editBeneficiaryModal = false" class="text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form :action="`/beneficiaries/${editBenForm.id}`" method="POST" class="mt-4 space-y-4">
+            @csrf
+            @method('PUT')
+
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
+                <input type="text" name="name" x-model="editBenForm.name" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
             </div>
 
-            <form :action="`/beneficiaries/${editBenForm.id}`" method="POST" class="mt-4 space-y-4">
-                @csrf
-                @method('PUT')
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
-                    <input type="text" name="name" x-model="editBenForm.name" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                </div>
+            <!-- COMBO BOX HUBUNGAN KELUARGA + OPSI LAINNYA -->
+            <div x-data="{
+                    presets: ['Suami', 'Istri', 'Anak Kandung', 'Ayah Kandung', 'Ibu Kandung', 'Kakak Kandung', 'Adik Kandung', 'Kerabat / Saudara', 'Pengacara / Notaris'],
+                    relSelect: '',
+                    relCustom: '',
+                    syncFromForm() {
+                        const current = editBenForm.relationship || '';
+                        if (!current) {
+                            this.relSelect = '';
+                            this.relCustom = '';
+                        } else if (this.presets.includes(current)) {
+                            this.relSelect = current;
+                            this.relCustom = '';
+                        } else {
+                            this.relSelect = 'Lainnya';
+                            this.relCustom = current;
+                        }
+                    }
+                 }"
+                 x-init="syncFromForm(); $watch('editBenForm.id', () => syncFromForm()); $watch('editBeneficiaryModal', (open) => { if (open) syncFromForm(); })"
+                 class="space-y-2.5">
+
                 <div>
                     <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Hubungan Keluarga</label>
-                    <input type="text" name="relationship" x-model="editBenForm.relationship" required placeholder="Contoh: Istri / Anak Kandung / Adik" class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                    <select x-model="relSelect"
+                            @change="editBenForm.relationship = (relSelect === 'Lainnya' ? relCustom : relSelect)"
+                            required
+                            class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                        <option value="" disabled>-- Pilih Hubungan Keluarga --</option>
+                        <template x-for="item in presets" :key="item">
+                            <option :value="item" x-text="item" :selected="relSelect === item"></option>
+                        </template>
+                        <option value="Lainnya" :selected="relSelect === 'Lainnya'">Lainnya (Ketik Sendiri)...</option>
+                    </select>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Email Aktif</label>
-                    <input type="email" name="email" x-model="editBenForm.email" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+
+                <!-- Muncul jika memilih "Lainnya" -->
+                <div x-show="relSelect === 'Lainnya'" x-cloak x-transition>
+                    <label class="block text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+                        Sebutkan Hubungan Lainnya *
+                    </label>
+                    <input type="text"
+                           x-model="relCustom"
+                           @input="editBenForm.relationship = relCustom"
+                           :required="relSelect === 'Lainnya'"
+                           placeholder="Contoh: Sahabat / Rekan Bisnis / Keponakan..."
+                           class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-emerald-500/50 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nomor WhatsApp / Telepon</label>
-                    <input type="text" name="phone" x-model="editBenForm.phone" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                </div>
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                    <button type="button" @click="editBeneficiaryModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">Batal</button>
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
+
+                <!-- Nilai akhir yang dikirim ke server -->
+                <input type="hidden" name="relationship" :value="relSelect === 'Lainnya' ? relCustom : relSelect">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Email Aktif</label>
+                <input type="email" name="email" x-model="editBenForm.email" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nomor WhatsApp / Telepon</label>
+                <input type="text" name="phone" x-model="editBenForm.phone" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <button type="button" @click="editBeneficiaryModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">Batal</button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition cursor-pointer">Simpan Perubahan</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <!-- MODAL 5: PERINGATAN ASET MAU KADALUARSA (TELEPORT)         -->
     @if($expiringCount > 0)
