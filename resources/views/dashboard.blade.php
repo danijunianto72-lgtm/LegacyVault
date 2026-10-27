@@ -793,86 +793,125 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
 
     <!-- TAB 2: DAFTAR AHLI WARIS -->
     <div x-show="activeTab === 'beneficiaries'" x-cloak x-transition.opacity class="space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-5">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-                    <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <i class="fa-solid fa-user-plus text-emerald-500"></i>
-                        <span>Tambah Ahli Waris Resmi</span>
-                    </h2>
-                    <form action="{{ route('beneficiaries.store') }}" method="POST" class="mt-4 space-y-4">
-                        @csrf
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
-                            <input type="text" name="name" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+                <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-emerald-500"></i>
+                    <span>Tambah Ahli Waris Resmi</span>
+                </h2>
+
+                <form action="{{ route('beneficiaries.store') }}" method="POST" class="mt-4 space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
+                        <input type="text" name="name" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+
+                    <!-- COMBO BOX HUBUNGAN KELUARGA + OPSI LAINNYA -->
+                    <div x-data="{ selectedRel: '', customRel: '' }" class="space-y-2.5">
                         <div>
                             <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Hubungan Keluarga</label>
-                            <input type="text" name="relationship" required placeholder="Contoh: Istri / Anak Kandung / Adik" class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Email Aktif</label>
-                            <input type="email" name="email" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nomor WhatsApp / Telepon</label>
-                            <input type="text" name="phone" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        </div>
-                        <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-floppy-disk"></i>
-                            <span>Simpan Ahli Waris</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="lg:col-span-7 space-y-3">
-                @forelse($beneficiaries as $person)
-                    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-start justify-between gap-4 shadow-sm">
-                        <div class="flex items-start gap-3.5">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">
-                                <i class="fa-solid fa-user-check"></i>
-                            </div>
-                            <div class="space-y-1">
-                                <div class="font-bold text-slate-900 dark:text-white text-sm">
-                                    {{ $person->name }} 
-                                    <span class="text-xs font-normal text-emerald-600 dark:text-emerald-400 ml-1">({{ $person->relationship }})</span>
-                                </div>
-                                <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                                    <i class="fa-regular fa-envelope text-[11px] w-3.5"></i>
-                                    <span>{{ $person->email }}</span>
-                                </div>
-                                <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                                    <i class="fa-solid fa-phone text-[11px] w-3.5"></i>
-                                    <span>{{ $person->phone }}</span>
-                                </div>
-                            </div>
+                            <select x-model="selectedRel" 
+                                    required
+                                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                                <option value="" disabled selected>-- Pilih Hubungan Keluarga --</option>
+                                <option value="Suami">Suami</option>
+                                <option value="Istri">Istri</option>
+                                <option value="Anak Kandung">Anak Kandung</option>
+                                <option value="Ayah Kandung">Ayah Kandung</option>
+                                <option value="Ibu Kandung">Ibu Kandung</option>
+                                <option value="Kakak Kandung">Kakak Kandung</option>
+                                <option value="Adik Kandung">Adik Kandung</option>
+                                <option value="Kerabat / Saudara">Kerabat / Saudara</option>
+                                <option value="Pengacara / Notaris">Pengacara / Notaris</option>
+                                <option value="Lainnya">Lainnya (Ketik Sendiri)...</option>
+                            </select>
                         </div>
 
-                        <div class="flex items-center gap-2">
-                            <button type="button" 
-                                    @click="openEditBen({{ json_encode($person) }})"
-                                    class="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition" title="Edit Ahli Waris">
-                                <i class="fa-solid fa-pen-to-square text-xs"></i>
-                            </button>
-                            <form action="{{ route('beneficiaries.destroy', $person) }}" method="POST" onsubmit="return confirm('Hapus ahli waris ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition" title="Hapus Ahli Waris">
-                                    <i class="fa-solid fa-trash-can text-xs"></i>
-                                </button>
-                            </form>
+                        <!-- Kolom Tambahan Jika Memilih "Lainnya" -->
+                        <div x-show="selectedRel === 'Lainnya'" x-cloak x-transition>
+                            <label class="block text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+                                Sebutkan Hubungan Lainnya *
+                            </label>
+                            <input type="text" 
+                                   x-model="customRel"
+                                   :required="selectedRel === 'Lainnya'"
+                                   placeholder="Contoh: Sahabat / Rekan Bisnis / Keponakan..."
+                                   class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-emerald-500/50 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
                         </div>
+
+                        <!-- Input Hidden yang dikirim ke Controller sebagai name="relationship" -->
+                        <input type="hidden" 
+                               name="relationship" 
+                               :value="selectedRel === 'Lainnya' ? customRel : selectedRel">
                     </div>
-                @empty
-                    <div class="p-12 rounded-2xl bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 text-center text-slate-500 text-sm">
-                        <i class="fa-solid fa-users-slash text-3xl text-slate-400 mb-2 block"></i>
-                        Belum ada data ahli waris yang didaftarkan.
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Email Aktif</label>
+                        <input type="email" name="email" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
                     </div>
-                @endforelse
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nomor WhatsApp / Telepon</label>
+                        <input type="text" name="phone" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Simpan Ahli Waris</span>
+                    </button>
+                </form>
             </div>
         </div>
+
+        <div class="lg:col-span-7 space-y-3">
+            @forelse($beneficiaries as $person)
+                <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-start justify-between gap-4 shadow-sm">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="font-bold text-slate-900 dark:text-white text-sm">
+                                {{ $person->name }} 
+                                <span class="text-xs font-normal text-emerald-600 dark:text-emerald-400 ml-1">({{ $person->relationship }})</span>
+                            </div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                <i class="fa-regular fa-envelope text-[11px] w-3.5"></i>
+                                <span>{{ $person->email }}</span>
+                            </div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                <i class="fa-solid fa-phone text-[11px] w-3.5"></i>
+                                <span>{{ $person->phone }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" 
+                                @click="openEditBen({{ json_encode($person) }})"
+                                class="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition" title="Edit Ahli Waris">
+                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                        </button>
+                        <form action="{{ route('beneficiaries.destroy', $person) }}" method="POST" onsubmit="return confirm('Hapus ahli waris ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition" title="Hapus Ahli Waris">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div class="p-12 rounded-2xl bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 text-center text-slate-500 text-sm">
+                    <i class="fa-solid fa-users-slash text-3xl text-slate-400 mb-2 block"></i>
+                    Belum ada data ahli waris yang didaftarkan.
+                </div>
+            @endforelse
+        </div>
     </div>
+</div>
 
   <div x-show="activeTab === 'logs'" x-cloak x-transition.opacity class="space-y-6">
     <h2 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
