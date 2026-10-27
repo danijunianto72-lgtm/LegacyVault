@@ -1539,7 +1539,8 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         <label class="block text-xs font-semibold text-slate-400 mb-1">Perbarui Lampiran Dokumen/Foto (Opsional)</label>
                         <input type="file" name="attachment" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-emerald-500/15 file:text-emerald-400 file:font-bold">
                     </div>
-                   <div x-data="{
+               <!-- Kategori Aset + Lainnya -->
+<div x-data="{
         presetCats: ['Finansial', 'Kredensial Akun', 'Dokumen Rahasia', 'Pesan Wasiat'],
         catChoice: 'Finansial',
         catCustom: '',
@@ -1571,7 +1572,7 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </select>
     </div>
 
-    <!-- Muncul jika memilih "Lainnya" -->
+    <!-- Muncul jika memilih 'Lainnya' -->
     <div x-show="catChoice === 'Lainnya'" x-cloak x-transition>
         <label class="block text-[11px] font-medium text-emerald-500 mb-1">
             Ketik Nama Kategori Lainnya *
@@ -1586,26 +1587,27 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
 
     <input type="hidden" name="category" :value="catChoice === 'Lainnya' ? catCustom : catChoice">
 </div>
-                <div>
-                       <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5"
-                        x-data="{ showPass: false }">
-                        <label class="block text-xs font-bold text-amber-400">
-                            <i class="fa-solid fa-lock mr-1"></i> Konfirmasi Kata Sandi Akun Anda *
-                        </label>
-                        <div class="relative">
-                            <input :type="showPass ? 'text' : 'password'" 
-                                name="account_password" 
-                                required 
-                                placeholder="Masukkan password login untuk menyimpan perubahan" 
-                                class="w-full px-3.5 py-2 pr-10 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
-                            <button type="button" 
-                                    @click="showPass = !showPass" 
-                                    class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
-                                <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+
+<!-- Kotak Konfirmasi Kata Sandi Akun -->
+<div class="mt-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2"
+     x-data="{ showPass: false }">
+    <label class="block text-xs font-bold text-amber-400">
+        <i class="fa-solid fa-lock mr-1"></i> Konfirmasi Kata Sandi Akun Anda *
+    </label>
+    <div class="relative">
+        <input :type="showPass ? 'text' : 'password'" 
+               name="account_password" 
+               required 
+               autocomplete="current-password"
+               placeholder="Masukkan password login untuk menyimpan perubahan" 
+               class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+        <button type="button" 
+                @click="showPass = !showPass" 
+                class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
+            <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+        </button>
+    </div>
+</div>
                   
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="editModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Batal</button>
