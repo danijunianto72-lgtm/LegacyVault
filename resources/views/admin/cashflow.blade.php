@@ -404,35 +404,59 @@
                                     {{ $pay->admin_note ?: 'Pembayaran diverifikasi & paket diaktifkan' }}
                                 </div>
 
-                                @php
-                                    // Ambil path bukti dari berbagai variasi nama field database
-                                    $proofPath = $pay->proof_image_path 
-                                        ?? $pay->payment_proof 
-                                        ?? $pay->proof_file 
-                                        ?? $pay->proof 
-                                        ?? null;
+                             
+@php
+    // Ambil bukti dari semua kemungkinan kolom database
+    $proofPath = $pay->proof_image_path
+        ?? $pay->payment_proof
+        ?? $pay->proof_file
+        ?? $pay->proof
+        ?? null;
 
-                                    $fullProofUrl = null;
-                                    if (!empty($proofPath)) {
-                                        $fullProofUrl = str_starts_with($proofPath, 'http') 
-                                            ? $proofPath 
-                                            : Storage::disk('supabase')->url(ltrim($proofPath, '/'));
-                                    }
+    $fullProofUrl = null;
 
-                                    $senderName = $pay->user->name ?? auth()->user()->name ?? '-';
-                                    $invoiceCode = $pay->invoice_number ?? $pay->order_id ?? ('TRX-' . $pay->id);
-                                @endphp
+    if (is_string($proofPath) && trim($proofPath) !== '') {
+        $proofPath = trim($proofPath);
 
-                                @if($fullProofUrl)
-                                    <button type="button"
-                                            @click="proofUrl = '{{ $fullProofUrl }}'; userName = '{{ addslashes($senderName) }}'; trxCode = '{{ $invoiceCode }}'; previewModal = true;"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all font-medium">
-                                        <i class="fa-solid fa-receipt"></i>
-                                        <span>Lihat Bukti</span>
-                                    </button>
-                                @else
-                                    <span class="text-slate-500 italic text-[11px]">Belum ada bukti</span>
-                                @endif
+        $fullProofUrl = preg_match('/^https?:\/\//i', $proofPath)
+            ? $proofPath
+            : Storage::disk('supabase')->url(
+                ltrim($proofPath, '/')
+            );
+    }
+
+    $senderName = $pay->user?->name
+        ?? auth()->user()?->name
+        ?? '-';
+
+    $invoiceCode = $pay->invoice_number
+        ?? $pay->order_id
+        ?? ('TRX-' . $pay->id);
+@endphp
+
+@if($fullProofUrl)
+    <button
+        type="button"
+        @click="
+            proofUrl = @js($fullProofUrl);
+            userName = @js($senderName);
+            trxCode = @js($invoiceCode);
+            previewModal = true;
+        "
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+               bg-emerald-500/10 border border-emerald-500/30
+               text-emerald-400 hover:bg-emerald-500/20
+               transition-all font-medium"
+    >
+        <i class="fa-solid fa-receipt"></i>
+        <span>Lihat Bukti</span>
+    </button>
+@else
+    <span class="text-slate-500 italic text-[11px]">
+        Belum ada bukti
+    </span>
+@endif
+
                             </td>
                         </tr>
                     @empty
