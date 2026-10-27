@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DeadManSwitchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\ForgotPasswordController;
 use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -66,6 +67,20 @@ Route::middleware('guest')->group(function () {
     Route::get('/register/otp', [RegisteredUserController::class, 'showOtpForm'])->name('register.otp');
     Route::post('/register/otp', [RegisteredUserController::class, 'verifyOtp'])->name('register.otp.verify');
     Route::post('/register/otp/resend', [RegisteredUserController::class, 'resendOtp'])->name('register.otp.resend');
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])
+        ->name('password.request');
+
+    // Proses kirim link ke email
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+        ->name('password.email');
+
+    // Form input password baru (dari link di email)
+    Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])
+        ->name('password.reset');
+
+    // Proses simpan password baru
+    Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])
+        ->name('password.update');
 });
 
 // Logout

@@ -392,7 +392,7 @@
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
                             <i class="fa-solid fa-key text-emerald-500 mr-1"></i> Reset Password Pengguna (Opsional)
                         </label>
-                        <div class="relative">
+                        <!-- <div class="relative">
                             <input :type="showNewPass ? 'text' : 'password'" 
                                    name="password" 
                                    placeholder="Biarkan kosong jika tidak ingin mengubah password user" 
@@ -400,7 +400,7 @@
                             <button type="button" @click="showNewPass = !showNewPass" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-200">
                                 <i class="fa-solid text-xs" :class="showNewPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                             </button>
-                        </div>
+                        </div> -->
                     </div>
 
                     <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">

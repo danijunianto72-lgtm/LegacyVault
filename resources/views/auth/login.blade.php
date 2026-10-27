@@ -76,6 +76,13 @@
                 </label>
             </div>
 
+            <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-medium text-slate-300">Kata Sandi</label>
+                <a href="{{ route('password.request') }}" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold hover:underline">
+                    Lupa kata sandi?
+                </a>
+            </div>
+            
             <div class="pt-2">
                 <button type="submit" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-arrow-right-to-bracket"></i>
