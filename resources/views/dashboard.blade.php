@@ -1257,6 +1257,18 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         <label class="block text-xs font-semibold text-slate-400 mb-1">Nama / Judul Aset</label>
                         <input type="text" name="title" x-model="selectedAsset.title" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white">
                     </div>
+                    <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        <i class="fa-solid fa-key mr-1 text-emerald-500"></i> Isi Kredensial / Instruksi Rahasia
+                    </label>
+                    <textarea name="secret_content" 
+                              x-model="selectedAsset.secret_content" 
+                              rows="4" 
+                              placeholder="Kosongkan jika tidak ingin mengubah isi kredensial rahasia, atau ketik isi baru di sini..."
+                              class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-slate-900 dark:text-white font-mono text-xs focus:border-emerald-500 focus:outline-none"></textarea>
+                    <p class="text-[10px] text-slate-400 mt-1">
+                        * Biarkan kosong jika tidak ingin mengubah data rahasia sebelumnya.
+                    </p>
 
                 <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
     <div class="flex items-center justify-between">
