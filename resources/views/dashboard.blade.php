@@ -1699,8 +1699,6 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </div>
 </template>
-
-@endif
 @if($approvedExtensionAsset)
 <template x-teleport="body">
     <div x-data="{ approvedModalOpen: true }" x-show="approvedModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
@@ -1727,7 +1725,9 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
         </div>
     </div>
 </template>
- <template x-teleport="body">
+@endif
+
+    <template x-teleport="body">
         <div x-show="helpModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
             <div @click.away="helpModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -1750,7 +1750,8 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
             </div>
         </div>
     </template>
-<!-- TOMBOL BANTUAN MELAYANG (FLOATING HELP BUTTON) DI KANAN BAWAH -->
+
+    <!-- TOMBOL BANTUAN MELAYANG (FLOATING HELP BUTTON) DI KANAN BAWAH -->
     <div x-data="{ contactOpen: false }" class="fixed bottom-6 right-6 z-40">
         
         <!-- Pop-up Box Bantuan Cepat -->
@@ -1791,15 +1792,14 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
             </a>
         </div>
 
-        <!-- Tombol Bulat/Kapsul Pemicu di Pojok Kanan Bawah -->
+        <!-- Tombol Bulat Pemicu di Pojok Kanan Bawah -->
         <button type="button"
                 @click="contactOpen = !contactOpen"
-                class="ml-auto px-4 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-xl shadow-emerald-500/25 hover:scale-105 transition flex items-center gap-2 border border-emerald-400">
-            <i class="fa-solid text-base" :class="contactOpen ? 'fa-xmark' : 'fa-headset'"></i>
-            <!-- <span>Butuh Bantuan?</span> -->
+                class="ml-auto w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/25 hover:scale-105 transition flex items-center justify-center border border-emerald-400">
+            <i class="fa-solid text-lg" :class="contactOpen ? 'fa-xmark' : 'fa-headset'"></i>
         </button>
 
     </div>
 </div> <!-- Penutup <div class="space-y-8" x-data="..."> -->
 
-@endsection 
+@endsection
