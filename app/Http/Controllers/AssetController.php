@@ -158,7 +158,7 @@ public function update(Request $request, Asset $asset): RedirectResponse
     $validated = $request->validate([
         'account_password' => 'required|string',
         'title' => 'required|string|max:150',
-        'category' => 'required|in:Finansial,Dokumen Rahasia,Kredensial Akun,Pesan Wasiat',
+'category' => 'required|string|max:100',
         'secret_content' => 'nullable|string',
         'attachment' => 'nullable|file|max:5120',
         'beneficiary_ids' => 'nullable|array',
