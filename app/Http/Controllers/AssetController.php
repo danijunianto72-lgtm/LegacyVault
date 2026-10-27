@@ -231,8 +231,30 @@ public function destroy(Request $request, Asset $asset): RedirectResponse
     return back()->with('success', 'Aset berhasil dihapus dari brankas.');
 }
 
-    public function storeBeneficiary(Request $request): RedirectResponse
+  public function storeBeneficiary(Request $request): RedirectResponse
     {
+        $user = $request->user();
+        $currentCount = $user->beneficiaries()->count();
+
+        // 1. Dapatkan paket aktif user saat ini
+        $currentPlan = $user->currentPlan();
+        $planSlug = strtolower($currentPlan->slug ?? 'free');
+        $planName = strtolower($currentPlan->name ?? 'free');
+
+        // 2. Tentukan kuota batas: Free/Biasa = 3, Pro = 10, Unlimited = null (tanpa batas)
+        if ($planSlug === 'free' || str_contains($planName, 'free') || str_contains($planName, 'biasa')) {
+            $maxBeneficiaries = 3;
+        } elseif ($planSlug === 'pro' || str_contains($planName, 'pro')) {
+            $maxBeneficiaries = 10;
+        } else {
+            $maxBeneficiaries = null;
+        }
+
+        // 3. Cegah input jika sudah mencapai batas kuota
+        if ($maxBeneficiaries !== null && $currentCount >= $maxBeneficiaries) {
+            return back()->with('error', "Batas ahli waris untuk paket {$currentPlan->name} ({$currentCount}/{$maxBeneficiaries}) telah tercapai. Silakan upgrade paket Anda!");
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:120',
             'relationship' => 'required|string|max:60',
@@ -240,7 +262,7 @@ public function destroy(Request $request, Asset $asset): RedirectResponse
             'phone' => 'required|string|max:30',
         ]);
 
-        $ben = $request->user()->beneficiaries()->create($validated);
+        $ben = $user->beneficiaries()->create($validated);
 
         ActivityLog::record('ADD_BENEFICIARY', "Menambahkan ahli waris baru: {$ben->name} ({$ben->relationship})");
 

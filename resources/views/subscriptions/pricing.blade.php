@@ -86,10 +86,21 @@
                             <i class="fa-solid fa-check text-emerald-500"></i>
                             <span>Lampiran Dokumen PDF / Gambar (Maks 5MB)</span>
                         </li>
-                        <li class="flex items-center gap-2">
-                            <i class="fa-solid fa-check text-emerald-500"></i>
-                            <span>Relasi Multi-Ahli Waris</span>
-                        </li>
+                      <li class="flex items-center gap-2">
+    <i class="fa-solid fa-check text-emerald-500"></i>
+    <span>
+        Kuota Ahli Waris: 
+        <strong>
+            @if($plan->slug === 'free')
+                Maksimal 3 Orang
+            @elseif($plan->slug === 'pro')
+                Hingga 10 Orang
+            @else
+                Unlimited (Tanpa Batas)
+            @endif
+        </strong>
+    </span>
+</li>
                         <li class="flex items-center gap-2">
                             <i class="fa-solid fa-check text-emerald-500"></i>
                             <span>

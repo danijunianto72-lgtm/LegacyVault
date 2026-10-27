@@ -794,76 +794,139 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
     <!-- TAB 2: DAFTAR AHLI WARIS -->
     <div x-show="activeTab === 'beneficiaries'" x-cloak x-transition.opacity class="space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-5">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-                <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-user-plus text-emerald-500"></i>
-                    <span>Tambah Ahli Waris Resmi</span>
-                </h2>
+        @php
+    $user = auth()->user();
+    $currentPlan = $user->currentPlan();
+    $planSlug = strtolower($currentPlan->slug ?? 'free');
+    $planName = strtolower($currentPlan->name ?? 'free');
+    $benCount = $beneficiaries->count();
 
-                <form action="{{ route('beneficiaries.store') }}" method="POST" class="mt-4 space-y-4">
-                    @csrf
-                    <div>
-                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
-                        <input type="text" name="name" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                    </div>
+    if ($planSlug === 'free' || str_contains($planName, 'free') || str_contains($planName, 'biasa')) {
+        $maxBen = 3;
+    } elseif ($planSlug === 'pro' || str_contains($planName, 'pro')) {
+        $maxBen = 10;
+    } else {
+        $maxBen = null; // Unlimited
+    }
 
-                    <!-- COMBO BOX HUBUNGAN KELUARGA + OPSI LAINNYA -->
-                    <div x-data="{ selectedRel: '', customRel: '' }" class="space-y-2.5">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Hubungan Keluarga</label>
-                            <select x-model="selectedRel" 
-                                    required
-                                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                                <option value="" disabled selected>-- Pilih Hubungan Keluarga --</option>
-                                <option value="Suami">Suami</option>
-                                <option value="Istri">Istri</option>
-                                <option value="Anak Kandung">Anak Kandung</option>
-                                <option value="Ayah Kandung">Ayah Kandung</option>
-                                <option value="Ibu Kandung">Ibu Kandung</option>
-                                <option value="Kakak Kandung">Kakak Kandung</option>
-                                <option value="Adik Kandung">Adik Kandung</option>
-                                <option value="Kerabat / Saudara">Kerabat / Saudara</option>
-                                <option value="Pengacara / Notaris">Pengacara / Notaris</option>
-                                <option value="Lainnya">Lainnya (Ketik Sendiri)...</option>
-                            </select>
-                        </div>
+    $isBenFull = ($maxBen !== null && $benCount >= $maxBen);
+@endphp
 
-                        <!-- Kolom Tambahan Jika Memilih "Lainnya" -->
-                        <div x-show="selectedRel === 'Lainnya'" x-cloak x-transition>
-                            <label class="block text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mb-1">
-                                Sebutkan Hubungan Lainnya *
-                            </label>
-                            <input type="text" 
-                                   x-model="customRel"
-                                   :required="selectedRel === 'Lainnya'"
-                                   placeholder="Contoh: Sahabat / Rekan Bisnis / Keponakan..."
-                                   class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-emerald-500/50 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                        </div>
+<div class="lg:col-span-5">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+        
+        <div class="flex items-center justify-between gap-2">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-user-plus text-emerald-500"></i>
+                <span>Tambah Ahli Waris Resmi</span>
+            </h2>
 
-                        <!-- Input Hidden yang dikirim ke Controller sebagai name="relationship" -->
-                        <input type="hidden" 
-                               name="relationship" 
-                               :value="selectedRel === 'Lainnya' ? customRel : selectedRel">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Email Aktif</label>
-                        <input type="email" name="email" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nomor WhatsApp / Telepon</label>
-                        <input type="text" name="phone" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
-                    </div>
-
-                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                        <span>Simpan Ahli Waris</span>
-                    </button>
-                </form>
-            </div>
+            <!-- Badge Kuota Ahli Waris -->
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border {{ $isBenFull ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' }}">
+                @if($maxBen === null)
+                    <i class="fa-solid fa-infinity mr-1"></i> {{ $benCount }} / Unlimited
+                @else
+                    {{ $benCount }} / {{ $maxBen }} Ahli Waris
+                @endif
+            </span>
         </div>
+
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            Paket Anda: <strong class="text-emerald-600 dark:text-emerald-400">{{ $currentPlan->name ?? 'Free' }}</strong>
+        </p>
+
+        @if($isBenFull)
+            <!-- Tampilan Terkunci Saat Mencapai Batas Kuota -->
+            <div class="mt-5 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-500 flex items-center justify-center mx-auto">
+                    <i class="fa-solid fa-crown text-xl"></i>
+                </div>
+
+                <div class="space-y-1">
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                        Kuota Ahli Waris Penuh ({{ $benCount }}/{{ $maxBen }})
+                    </h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        @if($maxBen === 3)
+                            Paket <strong>{{ $currentPlan->name ?? 'Biasa' }}</strong> dibatasi maksimal <strong>3 ahli waris</strong>. Upgrade ke paket <strong>Pro (10 Ahli Waris)</strong> atau <strong>Unlimited</strong> untuk menambah ahli waris baru.
+                        @else
+                            Paket <strong>{{ $currentPlan->name }}</strong> dibatasi maksimal <strong>10 ahli waris</strong>. Upgrade ke paket <strong>Unlimited</strong> untuk kuota ahli waris tanpa batas!
+                        @endif
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <a href="{{ route('pricing') }}" 
+                       class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-amber-500/20 inline-flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-arrow-up-right-dots"></i>
+                        <span>Upgrade Paket Sekarang</span>
+                    </a>
+                </div>
+            </div>
+        @else
+            <!-- Form Tambah Ahli Waris (Muncul Selama Kuota Belum Penuh) -->
+            <form action="{{ route('beneficiaries.store') }}" method="POST" class="mt-4 space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
+                    <input type="text" name="name" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                </div>
+
+                <div x-data="{ selectedRel: '', customRel: '' }" class="space-y-2.5">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Hubungan Keluarga</label>
+                        <select x-model="selectedRel" 
+                                required
+                                class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                            <option value="" disabled selected>-- Pilih Hubungan Keluarga --</option>
+                            <option value="Suami">Suami</option>
+                            <option value="Istri">Istri</option>
+                            <option value="Anak Kandung">Anak Kandung</option>
+                            <option value="Ayah Kandung">Ayah Kandung</option>
+                            <option value="Ibu Kandung">Ibu Kandung</option>
+                            <option value="Kakak Kandung">Kakak Kandung</option>
+                            <option value="Adik Kandung">Adik Kandung</option>
+                            <option value="Kerabat / Saudara">Kerabat / Saudara</option>
+                            <option value="Pengacara / Notaris">Pengacara / Notaris</option>
+                            <option value="Lainnya">Lainnya (Ketik Sendiri)...</option>
+                        </select>
+                    </div>
+
+                    <div x-show="selectedRel === 'Lainnya'" x-cloak x-transition>
+                        <label class="block text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mb-1">
+                            Sebutkan Hubungan Lainnya *
+                        </label>
+                        <input type="text" 
+                               x-model="customRel"
+                               :required="selectedRel === 'Lainnya'"
+                               placeholder="Contoh: Sahabat / Rekan Bisnis / Keponakan..."
+                               class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-emerald-500/50 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+
+                    <input type="hidden" 
+                           name="relationship" 
+                           :value="selectedRel === 'Lainnya' ? customRel : selectedRel">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Email Aktif</label>
+                    <input type="email" name="email" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Nomor WhatsApp / Telepon</label>
+                    <input type="text" name="phone" required class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none">
+                </div>
+
+                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Simpan Ahli Waris</span>
+                </button>
+            </form>
+        @endif
+
+    </div>
+</div>
 
         <div class="lg:col-span-7 space-y-3">
             @forelse($beneficiaries as $person)
