@@ -388,20 +388,30 @@
                     </div>
 
                     <!-- Baris 4: Reset Password Opsional -->
-                    <div x-data="{ showNewPass: false }" class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                            <i class="fa-solid fa-key text-emerald-500 mr-1"></i> Reset Password Pengguna (Opsional)
-                        </label>
-                        <!-- <div class="relative">
-                            <input :type="showNewPass ? 'text' : 'password'" 
-                                   name="password" 
-                                   placeholder="Biarkan kosong jika tidak ingin mengubah password user" 
-                                   class="w-full px-3.5 py-2 pr-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white">
-                            <button type="button" @click="showNewPass = !showNewPass" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-200">
-                                <i class="fa-solid text-xs" :class="showNewPass ? 'fa-eye-slash' : 'fa-eye'"></i>
-                            </button>
-                        </div> -->
-                    </div>
+                   <!-- Baris 4: Reset Password Opsional -->
+<div x-data="{ showNewPass: false, newPassword: '' }" 
+     x-init="$watch('editModalOpen', open => { if (open) { newPassword = ''; showNewPass = false; } })"
+     class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
+    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+        <i class="fa-solid fa-key text-emerald-500 mr-1"></i> Reset Password Pengguna (Opsional)
+    </label>
+    <div class="relative">
+        <input :type="showNewPass ? 'text' : 'password'" 
+               name="password" 
+               x-model="newPassword"
+               autocomplete="new-password"
+               placeholder="Biarkan kosong jika tidak ingin mengubah password user" 
+               class="w-full px-3.5 py-2 pr-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500">
+        <button type="button" 
+                @click="showNewPass = !showNewPass" 
+                class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+            <i class="fa-solid text-xs" :class="showNewPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+        </button>
+    </div>
+    <p class="text-[10px] text-slate-400">
+        * Hanya isi jika ingin mengganti kata sandi pengguna secara manual.
+    </p>
+</div>
 
                     <div class="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
                         <button type="button" @click="editModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">
