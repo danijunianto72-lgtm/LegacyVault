@@ -40,11 +40,17 @@
     </div>
 
     <!-- 3 Kartu Tier Langganan -->
+<!-- 3 Kartu Tier Langganan -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        @php
+            // Cek apakah paket aktif saat ini adalah unlimited
+            $currentIsUnlimited = $currentPlan && ($currentPlan->slug === 'unlimited' || $currentPlan->max_assets < 0 || $currentPlan->max_assets >= 9999);
+        @endphp
+
         @foreach($plans as $plan)
             @php 
-                $isCurrent = ($currentPlan->id === $plan->id); 
-                $isUnlimited = ($plan->max_assets < 0 || $plan->max_assets >= 9999);
+                $isCurrent = ($currentPlan && $currentPlan->id === $plan->id); 
+                $isPlanUnlimited = ($plan->slug === 'unlimited' || $plan->max_assets < 0 || $plan->max_assets >= 9999);
             @endphp
             <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border {{ $isCurrent ? 'border-emerald-500 ring-2 ring-emerald-500/20' : ($plan->slug === 'pro' ? 'border-emerald-500/60 shadow-xl shadow-emerald-950/20' : 'border-slate-200 dark:border-slate-800') }} flex flex-col justify-between relative shadow-sm transition">
                 
@@ -76,7 +82,7 @@
                     <ul class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 pt-4 border-t border-slate-200 dark:border-slate-800">
                         <li class="flex items-center gap-2">
                             <i class="fa-solid fa-check text-emerald-500"></i>
-                            <span>Kapasitas hingga <strong>{{ $isUnlimited ? 'Unlimited (Tanpa Batas)' : $plan->max_assets . ' Aset Digital' }}</strong></span>
+                            <span>Kapasitas hingga <strong>{{ $isPlanUnlimited ? 'Unlimited (Tanpa Batas)' : $plan->max_assets . ' Aset Digital' }}</strong></span>
                         </li>
                         <li class="flex items-center gap-2">
                             <i class="fa-solid fa-check text-emerald-500"></i>
@@ -86,21 +92,21 @@
                             <i class="fa-solid fa-check text-emerald-500"></i>
                             <span>Lampiran Dokumen PDF / Gambar (Maks 5MB)</span>
                         </li>
-                      <li class="flex items-center gap-2">
-    <i class="fa-solid fa-check text-emerald-500"></i>
-    <span>
-        Kuota Ahli Waris: 
-        <strong>
-            @if($plan->slug === 'free')
-                Maksimal 3 Orang
-            @elseif($plan->slug === 'pro')
-                Hingga 10 Orang
-            @else
-                Unlimited (Tanpa Batas)
-            @endif
-        </strong>
-    </span>
-</li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-check text-emerald-500"></i>
+                            <span>
+                                Kuota Ahli Waris: 
+                                <strong>
+                                    @if($plan->slug === 'free')
+                                        Maksimal 3 Orang
+                                    @elseif($plan->slug === 'pro')
+                                        Hingga 10 Orang
+                                    @else
+                                        Unlimited (Tanpa Batas)
+                                    @endif
+                                </strong>
+                            </span>
+                        </li>
                         <li class="flex items-center gap-2">
                             <i class="fa-solid fa-check text-emerald-500"></i>
                             <span>
@@ -116,6 +122,12 @@
                         <button disabled class="w-full py-2.5 px-4 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-500/30 cursor-not-allowed flex items-center justify-center gap-2">
                             <i class="fa-solid fa-badge-check"></i>
                             <span>Anda sedang menggunakan paket ini</span>
+                        </button>
+                    @elseif($currentIsUnlimited)
+                        {{-- Kunci paket lain jika user sudah di Unlimited --}}
+                        <button disabled class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-semibold cursor-not-allowed flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-800">
+                            <i class="fa-solid fa-lock"></i>
+                            <span>Paket Telah Maksimal</span>
                         </button>
                     @elseif($plan->price === 0)
                         <button disabled class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 text-xs font-semibold cursor-not-allowed flex items-center justify-center gap-2">
