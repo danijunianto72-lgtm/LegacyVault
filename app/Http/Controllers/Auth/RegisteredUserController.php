@@ -26,10 +26,22 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Normalisasi nomor telepon sebelum validasi (contoh: +62812 / 62812 -> 0812)
+        // Agar pengecekan unique di database akurat dan tidak bisa diakali
+        if ($request->filled('phone')) {
+            $cleanPhone = preg_replace('/[^0-9]/', '', $request->phone);
+            if (str_starts_with($cleanPhone, '62')) {
+                $cleanPhone = '0' . substr($cleanPhone, 2);
+            } elseif (str_starts_with($cleanPhone, '8')) {
+                $cleanPhone = '0' . $cleanPhone;
+            }
+            $request->merge(['phone' => $cleanPhone]);
+        }
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'phone' => ['required', 'string', 'max:25'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'phone' => ['required', 'string', 'min:10', 'max:15', 'regex:/^08[0-9]{8,13}$/', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'gender' => ['required', 'in:male,female'],
             'birth_date' => ['required', 'date', 'before:today'],
@@ -37,8 +49,13 @@ class RegisteredUserController extends Controller
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
-            'email.unique' => 'Email ini sudah terdaftar.',
+            'email.email' => 'Format alamat email tidak valid.',
+            'email.unique' => 'Alamat email ini sudah terdaftar. Silakan gunakan email lain.',
             'phone.required' => 'Nomor WhatsApp wajib diisi.',
+            'phone.min' => 'Nomor WhatsApp minimal 10 digit.',
+            'phone.max' => 'Nomor WhatsApp maksimal 15 digit.',
+            'phone.regex' => 'Format nomor WhatsApp tidak valid (gunakan awalan 08 atau 628).',
+            'phone.unique' => 'Nomor WhatsApp ini sudah terdaftar. Silakan gunakan nomor lain.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
             'gender.required' => 'Pilih jenis kelamin Anda.',
@@ -118,6 +135,17 @@ class RegisteredUserController extends Controller
 
         if ((string) $request->otp !== (string) $pending['otp_code']) {
             return back()->withErrors(['otp' => 'Kode OTP yang Anda masukkan salah!']);
+        }
+
+        // Pastikan ulang email & nomor HP belum dipakai selama proses tunggu OTP
+        if (User::where('email', $pending['email'])->exists()) {
+            session()->forget('pending_registration');
+            return redirect()->route('register')->withErrors(['email' => 'Alamat email ini sudah terdaftar.']);
+        }
+
+        if (User::where('phone', $pending['phone'])->exists()) {
+            session()->forget('pending_registration');
+            return redirect()->route('register')->withErrors(['phone' => 'Nomor WhatsApp ini sudah terdaftar.']);
         }
 
         // OTP Cocok -> Buat User Resmi di Database dari data pending session

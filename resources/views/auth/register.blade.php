@@ -4,7 +4,7 @@
 <div class="min-h-screen flex flex-col justify-center items-center py-10 px-4">
     <!-- Kotakan Card Register dengan Tombol Mode di Pojok Kanan Atas -->
     <div class="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
-        
+
         <!-- Tombol Toggle Mode Terang / Gelap di Dalam Kartu -->
         <div class="absolute top-6 right-6">
             <button type="button" 
@@ -30,38 +30,42 @@
         <form method="POST" enctype="multipart/form-data" action="{{ route('register') }}" class="space-y-4" x-data="{ showPass: false, showPassConfirm: false }">
             @csrf
 
+            <!-- Upload Foto Profil -->
             <div x-data="{ photoPreview: null }" class="flex flex-col items-center gap-3 pb-2">
-        <div class="relative w-24 h-24 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 p-1 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-slate-900 group">
-            <template x-if="photoPreview">
-                <img :src="photoPreview" class="w-full h-full rounded-full object-cover">
-            </template>
-            <template x-if="!photoPreview">
-                <div class="flex flex-col items-center justify-center text-slate-400 group-hover:text-emerald-500 transition">
-                    <i class="fa-solid fa-camera text-2xl mb-1"></i>
-                    <span class="text-[10px] font-medium">Foto Profil</span>
+                <div class="relative w-24 h-24 rounded-full border-2 border-dashed @error('avatar') border-rose-500 @else border-slate-300 dark:border-slate-700 @enderror p-1 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-slate-900 group">
+                    <template x-if="photoPreview">
+                        <img :src="photoPreview" class="w-full h-full rounded-full object-cover">
+                    </template>
+                    <template x-if="!photoPreview">
+                        <div class="flex flex-col items-center justify-center text-slate-400 group-hover:text-emerald-500 transition">
+                            <i class="fa-solid fa-camera text-2xl mb-1"></i>
+                            <span class="text-[10px] font-medium">Foto Profil</span>
+                        </div>
+                    </template>
+                    <input type="file" 
+                           name="avatar" 
+                           id="avatar" 
+                           accept="image/*"
+                           class="absolute inset-0 opacity-0 cursor-pointer"
+                           @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { photoPreview = e.target.result; }; reader.readAsDataURL(file); }">
                 </div>
-            </template>
-            <input type="file" 
-                   name="avatar" 
-                   id="avatar" 
-                   accept="image/*"
-                   class="absolute inset-0 opacity-0 cursor-pointer"
-                   @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { photoPreview = e.target.result; }; reader.readAsDataURL(file); }">
-        </div>
-        <label for="avatar" class="text-xs text-emerald-600 dark:text-emerald-400 font-medium cursor-pointer hover:underline">
-            Pilih Foto Profil (Opsional)
-        </label>
-        @error('avatar')
-            <span class="text-xs text-rose-500">{{ $message }}</span>
-        @enderror
-    </div>
+                <label for="avatar" class="text-xs text-emerald-600 dark:text-emerald-400 font-medium cursor-pointer hover:underline">
+                    Pilih Foto Profil (Opsional)
+                </label>
+                @error('avatar')
+                    <span class="text-xs text-rose-500 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
+                    </span>
+                @enderror
+            </div>
+
             <!-- Nama Lengkap -->
             <div>
                 <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     <i class="fa-regular fa-user mr-1 text-emerald-500"></i> Nama Lengkap
                 </label>
                 <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="Contoh: Muhammad Hilal"
-                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none transition">
+                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border @error('name') border-rose-500 focus:border-rose-500 @else border-slate-300 dark:border-slate-800 focus:border-emerald-500 @enderror px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition">
                 @error('name')
                     <p class="text-xs text-rose-500 mt-1 flex items-center gap-1">
                         <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
@@ -74,10 +78,10 @@
                 <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     <i class="fa-regular fa-envelope mr-1 text-emerald-500"></i> Alamat Email
                 </label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="nama@email.com"
-                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none transition">
+                <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="nama@gmail.com"
+                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border @error('email') border-rose-500 focus:border-rose-500 @else border-slate-300 dark:border-slate-800 focus:border-emerald-500 @enderror px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition">
                 @error('email')
-                    <p class="text-xs text-rose-500 mt-1 flex items-center gap-1">
+                    <p class="text-xs text-rose-500 mt-1 flex items-center gap-1 font-medium">
                         <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
                     </p>
                 @enderror
@@ -88,54 +92,59 @@
                 <label for="phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     <i class="fa-brands fa-whatsapp mr-1 text-emerald-500 text-sm"></i> Nomor WhatsApp Aktif
                 </label>
-                <input id="phone" type="text" name="phone" value="{{ old('phone') }}" required placeholder="Contoh: 081234567890"
-                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none transition">
+                <input id="phone" type="tel" name="phone" value="{{ old('phone') }}" required placeholder="Contoh: 081234567890"
+                    class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border @error('phone') border-rose-500 focus:border-rose-500 @else border-slate-300 dark:border-slate-800 focus:border-emerald-500 @enderror px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition">
                 <p class="text-[11px] text-slate-400 mt-1">Digunakan untuk konfirmasi sakelar kesehatan otomatis.</p>
                 @error('phone')
+                    <p class="text-xs text-rose-500 mt-1 flex items-center gap-1 font-medium">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
+                    </p>
+                @enderror
+            </div>
+
+            <!-- Pilihan Jenis Kelamin -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Jenis Kelamin
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 cursor-pointer hover:border-emerald-500 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10">
+                        <input type="radio" name="gender" value="male" {{ old('gender') === 'male' ? 'checked' : '' }} class="text-emerald-500 focus:ring-emerald-500">
+                        <span class="text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-mars text-blue-500"></i> Laki-laki
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 cursor-pointer hover:border-emerald-500 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10">
+                        <input type="radio" name="gender" value="female" {{ old('gender') === 'female' ? 'checked' : '' }} class="text-emerald-500 focus:ring-emerald-500">
+                        <span class="text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-venus text-pink-500"></i> Perempuan
+                        </span>
+                    </label>
+                </div>
+                @error('gender')
                     <p class="text-xs text-rose-500 mt-1 flex items-center gap-1">
                         <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
                     </p>
                 @enderror
             </div>
-            <!-- Pilihan Jenis Kelamin -->
-<div class="space-y-1.5">
-    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-        Jenis Kelamin
-    </label>
-    <div class="grid grid-cols-2 gap-3">
-        <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 cursor-pointer hover:border-emerald-500 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10">
-            <input type="radio" name="gender" value="male" {{ old('gender') === 'male' ? 'checked' : '' }} class="text-emerald-500 focus:ring-emerald-500">
-            <span class="text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <i class="fa-solid fa-mars text-blue-500"></i> Laki-laki
-            </span>
-        </label>
-        <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 cursor-pointer hover:border-emerald-500 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10">
-            <input type="radio" name="gender" value="female" {{ old('gender') === 'female' ? 'checked' : '' }} class="text-emerald-500 focus:ring-emerald-500">
-            <span class="text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <i class="fa-solid fa-venus text-pink-500"></i> Perempuan
-            </span>
-        </label>
-    </div>
-    @error('gender')
-        <span class="text-xs text-rose-500">{{ $message }}</span>
-    @enderror
-</div>
 
-<!-- Input Tanggal Lahir -->
-<div class="space-y-1.5">
-    <label for="birth_date" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-        Tanggal Lahir
-    </label>
-    <input type="date" 
-           id="birth_date" 
-           name="birth_date" 
-           value="{{ old('birth_date') }}" 
-           max="{{ date('Y-m-d') }}"
-           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-emerald-500 transition">
-    @error('birth_date')
-        <span class="text-xs text-rose-500">{{ $message }}</span>
-    @enderror
-</div>
+            <!-- Input Tanggal Lahir -->
+            <div class="space-y-1.5">
+                <label for="birth_date" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Tanggal Lahir
+                </label>
+                <input type="date" 
+                       id="birth_date" 
+                       name="birth_date" 
+                       value="{{ old('birth_date') }}" 
+                       max="{{ date('Y-m-d') }}"
+                       class="w-full px-3.5 py-2.5 rounded-xl border @error('birth_date') border-rose-500 focus:border-rose-500 @else border-slate-200 dark:border-slate-800 focus:border-emerald-500 @enderror bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none transition">
+                @error('birth_date')
+                    <p class="text-xs text-rose-500 mt-1 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation"></i> {{ $message }}
+                    </p>
+                @enderror
+            </div>
 
             <!-- Kata Sandi -->
             <div>
@@ -144,7 +153,7 @@
                 </label>
                 <div class="relative">
                     <input id="password" :type="showPass ? 'text' : 'password'" name="password" required placeholder="Minimal 8 karakter..."
-                        class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 pl-3.5 pr-11 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none transition">
+                        class="w-full rounded-xl bg-slate-50 dark:bg-slate-950 border @error('password') border-rose-500 focus:border-rose-500 @else border-slate-300 dark:border-slate-800 focus:border-emerald-500 @enderror pl-3.5 pr-11 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition">
                     <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-slate-400 hover:text-emerald-500 transition">
                         <i class="fa-solid" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
                     </button>
