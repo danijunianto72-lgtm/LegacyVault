@@ -234,62 +234,174 @@
         </div>
     </div>
 
-    <!-- Tabel Riwayat Transaksi User -->
-    <div class="space-y-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
-            <span>Riwayat Pembayaran Anda</span>
-        </h3>
-        <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 dark:bg-slate-950/70 text-slate-500 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                        <th class="py-3 px-4">Tanggal</th>
-                        <th class="py-3 px-4">Paket</th>
-                        <th class="py-3 px-4">Nominal</th>
-                        <th class="py-3 px-4">Bukti</th>
-                        <th class="py-3 px-4">Status</th>
-                        <th class="py-3 px-4">Catatan Admin</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
-                    @forelse($payments as $pay)
-                        <tr>
-                            <td class="py-3 px-4 text-slate-500 dark:text-slate-400">{{ $pay->created_at->format('d M Y H:i') }}</td>
-                            <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">{{ $pay->plan->name }}</td>
-                            <td class="py-3 px-4 text-slate-700 dark:text-slate-300">Rp {{ number_format($pay->amount, 0, ',', '.') }}</td>
-                            <td class="py-3 px-4">
-                                <a href="{{ Storage::disk('supabase_proofs')->url($pay->proof_image_path) }}" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-medium">
-                                    <i class="fa-solid fa-file-image"></i>
-                                    <span>Lihat Struk</span>
-                                </a>
-                            </td>
-                            <td class="py-3 px-4">
-                                @if($pay->status === 'pending')
-                                    <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-hourglass-half"></i> Menunggu Verifikasi
-                                    </span>
-                                @elseif($pay->status === 'approved')
-                                    <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-circle-check"></i> Disetujui
-                                    </span>
-                                @else
-                                    <span class="px-2 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 font-medium inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-circle-xmark"></i> Ditolak
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="py-3 px-4 text-slate-500 dark:text-slate-400">{{ $pay->admin_note ?? '-' }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="py-6 text-center text-slate-400 dark:text-slate-500">Belum ada riwayat transaksi.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+  <!-- Pembungkus Alpine.js (Letakkan tepat di atas div/table riwayat transaksi) -->
+<div x-data="{ 
+        previewModal: false, 
+        proofUrl: '', 
+        planName: '', 
+        trxCode: '',
+        printProof() {
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <html>
+                    <head>
+                        <title>Struk Pembayaran - ${this.trxCode}</title>
+                        <style>
+                            body { font-family: sans-serif; text-align: center; padding: 20px; color: #0f172a; }
+                            h2 { margin-bottom: 5px; }
+                            p { color: #475569; margin-top: 0; font-size: 14px; }
+                            img { max-width: 90%; max-height: 80vh; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 15px; }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>Bukti Pembayaran Langganan</h2>
+                        <p>Kode: <strong>${this.trxCode}</strong> | Paket: <strong>${this.planName}</strong></p>
+                        <img src='${this.proofUrl}' onload='window.print(); window.close();' />
+                    </body>
+                </html>
+            `);
+            printWin.document.close();
+        }
+    }">
+
+    <!-- Pastikan tag <table> dan <thead> Anda ada di sini -->
+    <table class="w-full text-left text-xs">
+        <!-- ... <thead> Anda ... -->
+
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60">
+            @forelse($payments as $pay)
+                <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition">
+                    <td class="py-3 px-4 text-slate-500 dark:text-slate-400">
+                        {{ $pay->created_at->format('d M Y H:i') }}
+                    </td>
+                    <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                        {{ $pay->plan->name ?? 'Paket' }}
+                    </td>
+                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300">
+                        Rp {{ number_format($pay->amount, 0, ',', '.') }}
+                    </td>
+                    <td class="py-3 px-4">
+                        @if($pay->proof_image_path)
+                            @php
+                                $fullProofUrl = Storage::disk('supabase_proofs')
+                                    ->url($pay->proof_image_path);
+
+                                $planTitle = $pay->plan?->name ?? 'Paket';
+
+                                $invoiceCode = $pay->invoice_number
+                                    ?? $pay->order_id
+                                    ?? ('TRX-' . $pay->id);
+                            @endphp
+
+                            <button
+                                type="button"
+                                @click="
+                                    proofUrl = @js($fullProofUrl);
+                                    planName = @js($planTitle);
+                                    trxCode = @js($invoiceCode);
+                                    previewModal = true;
+                                "
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+                                       bg-emerald-50 dark:bg-emerald-500/10
+                                       border border-emerald-200 dark:border-emerald-500/30
+                                       text-emerald-600 dark:text-emerald-400
+                                       hover:bg-emerald-100 dark:hover:bg-emerald-500/20
+                                       transition-all font-medium cursor-pointer"
+                            >
+                                <i class="fa-solid fa-file-image"></i>
+                                <span>Lihat Struk</span>
+                            </button>
+                        @else
+                            <span class="text-slate-400 dark:text-slate-500 italic text-[11px]">
+                                Tidak ada struk
+                            </span>
+                        @endif
+                    </td>
+                    <td class="py-3 px-4">
+                        @if($pay->status === 'pending')
+                            <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium inline-flex items-center gap-1">
+                                <i class="fa-solid fa-hourglass-half"></i> Menunggu Verifikasi
+                            </span>
+                        @elseif($pay->status === 'approved')
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium inline-flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check"></i> Disetujui
+                            </span>
+                        @else
+                            <span class="px-2 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 font-medium inline-flex items-center gap-1">
+                                <i class="fa-solid fa-circle-xmark"></i> Ditolak
+                            </span>
+                        @endif
+                    </td>
+                    <td class="py-3 px-4 text-slate-500 dark:text-slate-400">
+                        {{ $pay->admin_note ?? '-' }}
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="py-6 text-center text-slate-400 dark:text-slate-500">
+                        Belum ada riwayat transaksi.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <!-- Modal Preview Struk (Adaptif Light & Dark Mode) -->
+    <div x-show="previewModal" 
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm"
+         x-transition.opacity
+         @keydown.escape.window="previewModal = false">
+        
+        <div class="relative w-full max-w-lg bg-white dark:bg-[#0e1726] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden"
+             @click.away="previewModal = false">
+            
+            <!-- Header Modal -->
+            <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#070d1e]">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Preview Struk Pembayaran</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                        Kode: <span class="font-semibold text-slate-700 dark:text-slate-200" x-text="trxCode"></span> 
+                        &bull; Paket: <span class="text-emerald-600 dark:text-emerald-400 font-semibold" x-text="planName"></span>
+                    </p>
+                </div>
+                <button type="button" @click="previewModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Konten Gambar -->
+            <div class="p-4 flex items-center justify-center bg-slate-100/80 dark:bg-slate-950/60 max-h-[60vh] overflow-auto">
+                <img :src="proofUrl" alt="Struk Pembayaran" class="max-h-[55vh] w-auto object-contain rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+            </div>
+
+            <!-- Footer: Lihat Full & Print -->
+            <div class="flex items-center justify-between px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#070d1e]">
+                <!-- Tombol Lihat Full (Buka Tab Baru) -->
+                <a :href="proofUrl" target="_blank" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200/80 hover:bg-slate-300/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Lihat Full</span>
+                </a>
+
+                <div class="flex items-center gap-2">
+                    <!-- Tombol Print -->
+                    <button type="button" @click="printProof()"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-md shadow-cyan-600/20 transition-all cursor-pointer">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Print</span>
+                    </button>
+                    <!-- Tombol Tutup -->
+                    <button type="button" @click="previewModal = false"
+                            class="px-3 py-1.5 rounded-xl bg-slate-200/80 hover:bg-slate-300/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
+</div>
 
 </div>
 @endsection

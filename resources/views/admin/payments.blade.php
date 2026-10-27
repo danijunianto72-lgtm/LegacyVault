@@ -61,7 +61,7 @@
 
                             <form action="{{ route('admin.payments.reject', $payment) }}" method="POST">
                                 @csrf
-                                <input type="hidden" name="admin_notes" value="Bukti transfer tidak sesuai / buram.">
+                                <input type="hidden" name="admin_notes" value="Bukti transfer tidak sesuai.">
                                 <button type="submit" class="w-full py-2 px-3 rounded-xl bg-rose-600/15 hover:bg-rose-600/25 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-semibold transition flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-xmark"></i>
                                     <span>Tolak</span>
