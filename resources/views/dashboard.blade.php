@@ -1376,8 +1376,8 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                         <option value="Pesan Wasiat">Pesan Wasiat Pribadi</option>
                     </select>
                     
-                </div>
-   <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5"
+                </div><div>
+                       <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5"
                         x-data="{ showPass: false }">
                         <label class="block text-xs font-bold text-amber-400">
                             <i class="fa-solid fa-lock mr-1"></i> Konfirmasi Kata Sandi Akun Anda *
@@ -1395,6 +1395,8 @@ $approvedExtensionAsset = $assets->firstWhere('extension_status', 'approved');
                             </button>
                         </div>
                     </div>
+                </div>
+                  
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="editModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold">Batal</button>
                         <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold">Simpan Perubahan</button>
